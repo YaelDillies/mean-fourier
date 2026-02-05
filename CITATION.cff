@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: >
+  If you use this project in your work, please cite it using the metadata below.
+title: "MeanFourier"
+version: 0.1.0
+date-released: Feb 5, 2026
+authors:
+  - family-names: Dillies
+    given-names: Yaël
+    orcid: https://orcid.org/0000-0002-5369-8671
+repository-code: https://github.com/YaelDillies/mean-fourier
+url: https://github.com/YaelDillies/mean-fourier
+abstract: >
+  A project to formalise the Fourier theory of almost-periodic functions,
+  using the Lean 4 theorem prover.
+
+  Organised by Yaël Dillies. Launched Feb 5, 2026.
+keywords:
+  - formalisation project
+  - harmonic analysis
