@@ -71,7 +71,7 @@ The Lean code is located within the `MeanFourier` folder. Within it, one can fin
   Prerequisites that do not belong in any existing mathlib file are placed in subtheory folders.
   See below.
 
-See the [upstreaming dashboard](https://yaeldillies.github.io/MeanFourier/upstreaming) for more information.
+See the [upstreaming dashboard](https://yaeldillies.github.io/mean-fourier/upstreaming) for more information.
 
 ## Getting the project
 
