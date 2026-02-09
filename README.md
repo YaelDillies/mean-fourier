@@ -47,7 +47,7 @@ and obtains the Fourier analysis of continuous functions on compact groups
 This is the maximal generality in which the dual space is equipped with the discrete measure,
 which is the crucial property powering Fourier-analytic arguments in additive combinatorics.
 
-[APAP](https://github.com/YaelDillies/LeanAPAP/) is my previous project
+[APAP](https://github.com/YaelDillies/apap/) is my previous project
 formalising one such argument, but developing only the Fourier theory of finite abelian groups
 (aka finite Fourier analysis).
 MeanFourier is meant as a drop-in replacement of this part of APAP.
