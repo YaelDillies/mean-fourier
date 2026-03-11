@@ -56,7 +56,7 @@ jobs:
           website-directory: "website"
           project-name: "MeanFourier"
           include-drafts: true
-          relevant-labels: ["mean-fourier"]
+          relevant-labels: "mean-fourier"
           branch-name: "master"
 
       - name: File dependencies
