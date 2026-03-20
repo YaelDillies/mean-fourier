@@ -2,16 +2,10 @@
 
 The eventual goal of the MeanFourier project is to be fully upstreamed to Mathlib.
 
-As such, it is crucial to continuously organise upstreaming from MeanFourier to Mathlib. The way we organise this is with the following two lists, showing files with no MeanFourier dependencies depending on whether they contain the keyword `sorry` or not.
+As such, it is crucial to continuously organise upstreaming from MeanFourier to Mathlib.
+The way we organise this is with the following two lists,
+showing files with no MeanFourier dependencies depending on whether they contain `sorry` or not.
 
-## Files ready to upstream
+{% include _upstreaming_dashboard/ready_to_upstream_snippet.md %}
 
-The following files are `sorry`-free and do not depend on any other MeanFourier file, meaning they can be readily PRed to Mathlib.
-
-{% include _upstreaming_dashboard/ready_to_upstream.md %}
-
-## Files easy to unlock
-
-The following files do not depend on any other MeanFourier file but still contain `sorry`, usually indicating that working on eliminating those sorries might unblock some part of the project.
-
-{% include _upstreaming_dashboard/easy_to_unlock.md %}
+{% include _upstreaming_dashboard/easy_to_unlock_snippet.md %}
