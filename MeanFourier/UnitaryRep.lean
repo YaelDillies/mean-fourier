@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 module
 
+public import Mathlib.CategoryTheory.ConcreteCategory.Forget
 public import Mathlib.CategoryTheory.Elementwise
 public import Mathlib.CategoryTheory.Preadditive.Basic
 public import Mathlib.RepresentationTheory.Intertwining
