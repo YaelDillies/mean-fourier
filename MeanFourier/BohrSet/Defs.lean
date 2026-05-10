@@ -9,7 +9,6 @@ public import MeanFourier.UnitaryDual
 
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 import MeanFourier.Mathlib.Analysis.Normed.Operator.NormedSpace
-import MeanFourier.Mathlib.Analysis.Normed.Ring.Basic
 
 /-!
 # Bohr sets
@@ -349,7 +348,7 @@ lemma chordSet_mul_chordSet_subset {B₁ B₂ B₃ : BohrSet G} (h : B₁.ewidth
   rintro x hx y hy rfl ψ
   rw [map_mul]
   have : ‖1 - (ψ x : ψ.E →L[ℂ] ψ.E) * ψ y‖₊ ≤ ‖1 - (ψ x : ψ.E →L[ℂ] ψ.E)‖₊ + _ :=
-    nnnorm_one_sub_mul (by simp)
+    nnnorm_sub_mul_le (by simp)
   rw [← ENNReal.coe_le_coe, ENNReal.coe_add] at this
   exact this.trans <| (h _).trans' <| add_le_add (hx _) (hy _)
 
