@@ -3,7 +3,6 @@ import MeanFourier.BohrSet.Defs
 import MeanFourier.BohrSet.Regular
 import MeanFourier.InvtMean
 import MeanFourier.Mathlib.Analysis.InnerProductSpace.Adjoint
-import MeanFourier.Mathlib.Analysis.InnerProductSpace.Defs
 import MeanFourier.Mathlib.Analysis.Normed.Operator.LinearIsometry
 import MeanFourier.Mathlib.Analysis.Normed.Operator.NormedSpace
 import MeanFourier.Mathlib.Topology.Algebra.Module.Equiv
