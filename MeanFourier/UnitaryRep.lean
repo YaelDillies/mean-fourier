@@ -19,11 +19,11 @@ For `𝕜 = ℝ, ℂ`, this file defines the category of `𝕜`-valued unitary r
 
 public noncomputable section
 
-universe w w' u u' v v'
+universe u
 
 open CategoryTheory
 
-variable {𝕜 : Type w} {ι G : Type*} {E F H : Type w} [RCLike 𝕜]
+variable {ι 𝕜 G : Type*} {E F H : Type u} [RCLike 𝕜]
 
 variable (𝕜 G) [Group G] in
 /-- The category of unitary representations of a group `G` and their morphisms. -/
@@ -31,34 +31,34 @@ structure UnitaryRep where
   /-- Construct an object in `UnitaryRep 𝕜 G` from its underlying unitary representation. -/
   of ::
   /-- The underlying finite-dimensional Hilbert space of an object in `UnitaryRep 𝕜 G` -/
-  {E : Type w}
+  {E : Type u}
   [normedAddCommGroup : NormedAddCommGroup E]
   [innerProductSpace : InnerProductSpace 𝕜 E]
-  [finiteDimensional : FiniteDimensional 𝕜 E]
+  [completeSpace : CompleteSpace E]
   /-- The underlying unitary representation of an object in `UnitaryRep 𝕜 G` -/
   ρ : UnitaryRepresentation 𝕜 G E
 
 namespace UnitaryRep
 
-attribute [instance] normedAddCommGroup innerProductSpace finiteDimensional
+attribute [instance] normedAddCommGroup innerProductSpace completeSpace
 
 initialize_simps_projections UnitaryRep
-  (-normedAddCommGroup, -innerProductSpace, -finiteDimensional)
+  (-normedAddCommGroup, -innerProductSpace, -completeSpace)
 
 section Group
 variable [Group G]
 
-instance : CoeSort (UnitaryRep 𝕜 G) (Type w) where coe := UnitaryRep.E
+instance : CoeSort (UnitaryRep.{u} 𝕜 G) (Type u) where coe := UnitaryRep.E
 
-variable {A B C : UnitaryRep.{w} 𝕜 G}
-  [NormedAddCommGroup E] [InnerProductSpace 𝕜 E] [FiniteDimensional 𝕜 E]
-  [NormedAddCommGroup F] [InnerProductSpace 𝕜 F] [FiniteDimensional 𝕜 F]
-  [NormedAddCommGroup H] [InnerProductSpace 𝕜 H] [FiniteDimensional 𝕜 H]
+variable {A B C : UnitaryRep.{u} 𝕜 G}
+  [NormedAddCommGroup E] [InnerProductSpace 𝕜 E] [CompleteSpace E]
+  [NormedAddCommGroup F] [InnerProductSpace 𝕜 F] [CompleteSpace F]
+  [NormedAddCommGroup H] [InnerProductSpace 𝕜 H] [CompleteSpace H]
   {ρ : UnitaryRepresentation 𝕜 G E} {σ : UnitaryRepresentation 𝕜 G F}
   {τ : UnitaryRepresentation 𝕜 G H}
 
 variable (A B) in
-/-- The type of morphisms in `UnitaryRep.{w} 𝕜 G`. -/
+/-- The type of morphisms in `UnitaryRep.{u} 𝕜 G`. -/
 @[ext]
 structure Hom where
   private mk ::
@@ -67,7 +67,7 @@ structure Hom where
 
 set_option backward.privateInPublic true in
 set_option backward.privateInPublic.warn false in
-instance : Category (UnitaryRep.{w} 𝕜 G) where
+instance : Category (UnitaryRep.{u} 𝕜 G) where
   Hom A B := Hom A B
   id A := ⟨1⟩
   comp f g := ⟨g.hom'.comp f.hom'⟩
@@ -75,7 +75,7 @@ instance : Category (UnitaryRep.{w} 𝕜 G) where
 set_option backward.privateInPublic true in
 set_option backward.privateInPublic.warn false in
 instance :
-    ConcreteCategory (UnitaryRep.{w} 𝕜 G) fun A B ↦
+    ConcreteCategory (UnitaryRep.{u} 𝕜 G) fun A B ↦
       A.ρ.toRepresentation.IntertwiningMap B.ρ.toRepresentation where
   hom := Hom.hom'
   ofHom := Hom.mk
@@ -85,7 +85,7 @@ abbrev Hom.hom (f : Hom A B) := ConcreteCategory.hom (C := UnitaryRep 𝕜 G) f
 
 /-- Typecheck an `IntertwiningMap` as a morphism in `UnitaryRep`. -/
 abbrev ofHom (f : ρ.toRepresentation.IntertwiningMap σ.toRepresentation) : of ρ ⟶ of σ :=
-  ConcreteCategory.ofHom (C := UnitaryRep.{w} 𝕜 G) f
+  ConcreteCategory.ofHom (C := UnitaryRep.{u} 𝕜 G) f
 
 /-- Use the `ConcreteCategory.hom` projection for `@[simps]` lemmas. -/
 def Hom.Simps.hom (f : Hom A B) := f.hom
@@ -129,9 +129,9 @@ lemma ofHom_apply (f : ρ.toRepresentation.IntertwiningMap σ.toRepresentation) 
 lemma inv_hom_apply (e : A ≅ B) (x : A) : e.inv.hom (e.hom.hom x) = x := by simp
 lemma hom_inv_apply (e : A ≅ B) (x : B) : e.hom.hom (e.inv.hom x) = x := by simp
 
-lemma forget_obj : (forget (UnitaryRep.{w} 𝕜 G)).obj A = A := rfl
+lemma forget_obj : (forget (UnitaryRep.{u} 𝕜 G)).obj A = A := rfl
 
-lemma forget_map (f : A ⟶ B) : (forget (UnitaryRep.{w} 𝕜 G)).map f = (f : _ → _) := rfl
+lemma forget_map (f : A ⟶ B) : (forget (UnitaryRep.{u} 𝕜 G)).map f = (f : _ → _) := rfl
 
 /-- An equiv between the underlying representations induce isomorphism between objects in
 `UnitaryRep 𝕜 G`. -/
@@ -169,9 +169,9 @@ def equivOfIso (i : A ≅ B) : A.ρ.toRepresentation.Equiv B.ρ.toRepresentation
   left_inv x := by simp
   right_inv x := by simp
 
-instance reflectsIsomorphisms_forget : (forget (UnitaryRep.{w} 𝕜 G)).ReflectsIsomorphisms where
+instance reflectsIsomorphisms_forget : (forget (UnitaryRep.{u} 𝕜 G)).ReflectsIsomorphisms where
   reflects {X Y} f _ := by
-    let i := asIso ((forget (UnitaryRep.{w} 𝕜 G)).map f)
+    let i := asIso ((forget (UnitaryRep.{u} 𝕜 G)).map f)
     let e : X.ρ.toRepresentation.Equiv Y.ρ.toRepresentation := { f.hom, i.toEquiv with }
     exact (mkIso e).isIso_hom
 
@@ -257,12 +257,11 @@ lemma zsmul_hom (f : A ⟶ B) (n : ℤ) : (n • f).hom = n • f.hom := rfl
 instance : AddCommGroup (A ⟶ B) := fast_instance% hom_injective.addCommGroup
     UnitaryRep.Hom.hom zero_hom add_hom neg_hom sub_hom nsmul_hom zsmul_hom
 
-instance : Preadditive (UnitaryRep.{w} 𝕜 G) where
+instance : Preadditive (UnitaryRep.{u} 𝕜 G) where
   add_comp _ _ _ := add_comp
   comp_add _ _ _ := comp_add
 
-lemma sum_hom {ι : Type u'} (f : ι → (A ⟶ B)) (s : Finset ι) :
-    (∑ i ∈ s, f i).hom = ∑ i ∈ s, (f i).hom := by
+lemma sum_hom (f : ι → (A ⟶ B)) (s : Finset ι) : (∑ i ∈ s, f i).hom = ∑ i ∈ s, (f i).hom := by
   classical induction s using Finset.induction with
   | empty => simp
   | insert a s ha h => simp [Finset.sum_insert ha, add_hom, h]

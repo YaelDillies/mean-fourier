@@ -13,18 +13,6 @@ public import MeanFourier.Mathlib.Topology.Algebra.Module.Equiv
 public section
 
 variable {𝕜 G E : Type*} [RCLike 𝕜] [Group G] [NormedAddCommGroup E] [InnerProductSpace 𝕜 E]
-  [FiniteDimensional 𝕜 E]
-
-namespace Representation
-
-/-- A representation `ρ` on a finite-dimensional inner product space is unitary if `ρ x` is a
-unitary operator for each `x`. -/
-@[expose]
-def IsUnitary (ρ : Representation 𝕜 G E) : Prop := ∀ x, ρ x ∈ unitary (E →ₗ[𝕜] E)
-
-@[simp] protected lemma IsUnitary.trivial : IsUnitary (trivial 𝕜 G E) := by simp [IsUnitary]
-
-end Representation
 
 variable (𝕜 G E) in
 abbrev UnitaryRepresentation : Type _ := G →* E ≃ₗᵢ[𝕜] E
