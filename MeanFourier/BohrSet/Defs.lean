@@ -8,7 +8,6 @@ module
 public import MeanFourier.UnitaryDual
 
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
-import MeanFourier.Mathlib.Analysis.Normed.Operator.NormedSpace
 
 /-!
 # Bohr sets

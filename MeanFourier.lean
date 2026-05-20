@@ -2,10 +2,6 @@ import MeanFourier.AlmostPeriod.L2
 import MeanFourier.BohrSet.Defs
 import MeanFourier.BohrSet.Regular
 import MeanFourier.InvtMean
-import MeanFourier.Mathlib.Analysis.Normed.Operator.LinearIsometry
-import MeanFourier.Mathlib.Analysis.Normed.Operator.NormedSpace
-import MeanFourier.Mathlib.Topology.Algebra.Module.Equiv
-import MeanFourier.Mathlib.Topology.Algebra.Module.LinearMap
 import MeanFourier.UnitaryDual
 import MeanFourier.UnitaryRep
 import MeanFourier.UnitaryRepresentation

@@ -20,6 +20,10 @@ name = "AddCombi"
 git = "https://github.com/leanprover-community/add-combi.git"
 
 [[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4.git"
+
+[[require]]
 name = "checkdecls"
 git = "https://github.com/PatrickMassot/checkdecls.git"
 

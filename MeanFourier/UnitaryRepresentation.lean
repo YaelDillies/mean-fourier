@@ -7,8 +7,6 @@ module
 
 public import Mathlib.Analysis.InnerProductSpace.Adjoint
 public import Mathlib.RepresentationTheory.Basic
-public import MeanFourier.Mathlib.Analysis.Normed.Operator.LinearIsometry
-public import MeanFourier.Mathlib.Topology.Algebra.Module.Equiv
 
 public section
 
