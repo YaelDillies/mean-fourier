@@ -17,15 +17,16 @@ public noncomputable section
 open CategoryTheory
 
 universe u
-variable {𝕜 : Type u} {ι G : Type*} [RCLike 𝕜] [Group G]
+variable {𝕜 : Type u} {ι G : Type*} [RCLike 𝕜]
 
 variable (𝕜 G) in
-def UnitaryDual : Type _ :=
+def UnitaryDual [Group G] : Type _ :=
   Skeleton <| ObjectProperty.FullSubcategory
     fun ψ : UnitaryRep.{u} 𝕜 G ↦ ψ.ρ.toRepresentation.IsIrreducible
 
 namespace UnitaryDual
-variable {ψ : UnitaryDual 𝕜 G}
+section Group
+variable [Group G] {ψ : UnitaryDual 𝕜 G}
 
 variable (ψ) in
 protected def E : Type _ := ψ.out.1.E
@@ -55,4 +56,14 @@ def ofUnitaryRepresentation {E : Type u} [NormedAddCommGroup E] [InnerProductSpa
 
 instance [Finite G] : Fintype (UnitaryDual ℂ G) := sorry
 
+end Group
+
+section CommGroup
+variable [CommGroup G] {ψ : UnitaryDual ℂ G}
+
+variable (ψ) in
+@[simp] lemma finrank_E_eq_one : Module.finrank ℂ ψ.E = 1 :=
+  UnitaryRepresentation.finrank_eq_one_of_isIrreducible isIrreducible_ρ
+
+end CommGroup
 end UnitaryDual

@@ -17,7 +17,7 @@ public section
 
 open scoped ENNReal NNReal Finset
 
-variable {G : Type*} [Group G]
+variable {G : Type*}
 
 variable (G) in
 /-- A *Bohr set* `B` on a group `G` is a finite set of unitary representations of `G`, called the
@@ -31,14 +31,15 @@ the *chord-length* convention. The arc-length convention would instead be
 Note that this set **does not** uniquely determine `B` (in particular, it does not uniquely
 determine either `B.frequencies` or `B.width`). -/
 @[ext]
-structure BohrSet where
+structure BohrSet [Group G] where
   frequencies : Finset (UnitaryDual ℂ G)
   /-- The width of a Bohr set at a frequency. Note that this width corresponds to chord-length. -/
   ewidth : UnitaryDual ℂ G → ℝ≥0∞
   mem_frequencies : ∀ ψ, ψ ∈ frequencies ↔ ewidth ψ < ⊤
 
 namespace BohrSet
-variable {B : BohrSet G} {ψ : UnitaryDual ℂ G} {x : G}
+section Group
+variable [Group G] {B : BohrSet G} {ψ : UnitaryDual ℂ G} {x : G}
 
 def width (B : BohrSet G) (ψ : UnitaryDual ℂ G) : ℝ≥0 := (B.ewidth ψ).toNNReal
 
@@ -239,8 +240,12 @@ def cardRank (B : BohrSet G) : ℕ := #B.frequencies
 
 @[simp] lemma card_frequencies (B : BohrSet G) : #B.frequencies = B.cardRank := by rfl
 
-/-- The dimension rank of a Bohr set is the sum of the dimension of its frequencies. -/
+/-- The dimension rank of a Bohr set is the sum of the dimensions of its frequencies. -/
 noncomputable def dimRank (B : BohrSet G) : ℕ := ∑ ψ ∈ B.frequencies, Module.finrank ℂ ψ.E
+
+/-- The squared dimension rank of a Bohr set is the sum of the squares of the dimensions of its
+frequencies. -/
+noncomputable def dimSqRank (B : BohrSet G) : ℕ := ∑ ψ ∈ B.frequencies, Module.finrank ℂ ψ.E ^ 2
 
 lemma cardRank_le_dimRank : B.cardRank ≤ B.dimRank := by
   rw [← card_frequencies, Finset.card_eq_sum_ones, dimRank]
@@ -356,4 +361,16 @@ lemma chordSet_smul_add_chordSet_smul_subset {ρ₁ ρ₂ : ℝ} (hρ₁ : 0 ≤
   chordSet_mul_chordSet_subset fun ψ => by
     simp only [Pi.add_apply, ewidth_smul]; split <;> simp [add_nonneg, add_mul, *]
 
+end Group
+
+section CommGroup
+variable [CommGroup G] {B : BohrSet G}
+
+variable (B) in
+@[simp] lemma dimRank_eq_cardRank : B.dimRank = B.cardRank := by simp [dimRank]
+
+variable (B) in
+@[simp] lemma dimSqRank_eq_cardRank : B.dimSqRank = B.cardRank := by simp [dimSqRank]
+
+end CommGroup
 end BohrSet
