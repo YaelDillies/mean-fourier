@@ -1,8 +1,24 @@
-import MeanFourier.AlmostPeriod.L2
-import MeanFourier.BohrSet.Defs
-import MeanFourier.BohrSet.Regular
-import MeanFourier.InvtMean
-import MeanFourier.UnitaryDual
-import MeanFourier.UnitaryRep
-import MeanFourier.UnitaryRepresentation
-import MeanFourier.VCDim.Averaging
+module  -- shake: keep-all
+
+public import MeanFourier.AlmostPeriod.L2
+public import MeanFourier.BohrSet.Defs
+public import MeanFourier.BohrSet.Regular
+public import MeanFourier.InvtMean
+public import MeanFourier.Mathlib.Algebra.BigOperators.GroupWithZero.Finset
+public import MeanFourier.Mathlib.Algebra.Group.Pointwise.Set.Basic
+public import MeanFourier.Mathlib.Combinatorics.Additive.ApproximateSubgroup
+public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
+public import MeanFourier.Mathlib.Data.ENNReal.BigOperators
+public import MeanFourier.Mathlib.Data.ENNReal.Operations
+public import MeanFourier.Mathlib.Data.ENat.Basic
+public import MeanFourier.Mathlib.Data.ENat.BigOperators
+public import MeanFourier.Mathlib.Data.Finset.Pi
+public import MeanFourier.Mathlib.Data.Fintype.BigOperators
+public import MeanFourier.Mathlib.Data.Fintype.Pi
+public import MeanFourier.Mathlib.Data.Set.Prod
+public import MeanFourier.Mathlib.Topology.MetricSpace.Cover
+public import MeanFourier.Mathlib.Topology.MetricSpace.CoveringNumbers
+public import MeanFourier.UnitaryDual
+public import MeanFourier.UnitaryRep
+public import MeanFourier.UnitaryRepresentation
+public import MeanFourier.VCDim.Averaging
