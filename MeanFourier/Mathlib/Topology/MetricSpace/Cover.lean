@@ -10,6 +10,16 @@ namespace Metric
 variable {X Y : Type*} [PseudoEMetricSpace X] [PseudoEMetricSpace Y] {f : X → Y} {s C P : Set X}
   {t D : Set Y} {K ε : ℝ≥0} {n : ℕ∞}
 
+protected lemma IsCover.image (hf : LipschitzOnWith K f s) (hst : s.SurjOn f t) (hCs : C ⊆ s)
+    (hC : IsCover ε s C) : IsCover (K * ε) t (f '' C) := by
+  rintro y hy
+  obtain ⟨x, hx, rfl⟩ := hst hy
+  obtain ⟨c, hc, hxc⟩ := hC hx
+  refine ⟨f c, Set.mem_image_of_mem _ hc, ?_⟩
+  dsimp
+  grw [hf.edist_le_mul_of_le hx (hCs hc)]
+  exact hxc
+
 protected lemma IsCover.prod (hC : IsCover ε s C) (hD : IsCover ε t D) :
     IsCover ε (s ×ˢ t) (C ×ˢ D) := by
   rintro ⟨x, y⟩ ⟨hx, hy⟩

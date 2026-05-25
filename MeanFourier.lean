@@ -18,6 +18,7 @@ public import MeanFourier.Mathlib.Data.Fintype.Pi
 public import MeanFourier.Mathlib.Data.Set.Prod
 public import MeanFourier.Mathlib.Topology.MetricSpace.Cover
 public import MeanFourier.Mathlib.Topology.MetricSpace.CoveringNumbers
+public import MeanFourier.Mathlib.Topology.MetricSpace.MetricSeparated
 public import MeanFourier.UnitaryDual
 public import MeanFourier.UnitaryRep
 public import MeanFourier.UnitaryRepresentation

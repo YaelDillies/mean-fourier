@@ -4,6 +4,7 @@ public import Mathlib.Topology.MetricSpace.CoveringNumbers
 public import MeanFourier.Mathlib.Data.ENat.BigOperators
 public import MeanFourier.Mathlib.Data.Set.Prod
 public import MeanFourier.Mathlib.Topology.MetricSpace.Cover
+public import MeanFourier.Mathlib.Topology.MetricSpace.MetricSeparated
 
 open scoped NNReal ENNReal
 
@@ -51,6 +52,37 @@ lemma packingNumber_ne_zero_iff : packingNumber ε s ≠ 0 ↔ s.Nonempty := by
 
 lemma packingNumber_two_mul_le_coveringNumber : packingNumber (2 * ε) s ≤ coveringNumber ε s := by
   grw [packingNumber_two_mul_le_externalCoveringNumber, externalCoveringNumber_le_coveringNumber]
+
+/-- The smallness of the packing number is quantitatively pulled back under antilipschitz maps. -/
+lemma packingNumber_le_packingNumber_of_antilipschitzWith (hst : s.MapsTo f t)
+    (hf : AntilipschitzWith K f) : packingNumber (K * ε) s ≤ packingNumber ε t := by
+  refine packingNumber_le_iff.2 fun P hPs hP ↦ ?_
+  rw [← (hf.injOn hP).encard_image]
+  exact (hP.image_of_antilipschitzWith hf).encard_le_packingNumber (by grw [hPs, hst.image_subset])
+
+/-- The smallness of the covering number is quantitatively pulled back under antilipschitz maps. -/
+lemma coveringNumber_le_coveringNumber_of_antilipschitzWith (hst : s.MapsTo f t)
+    (hf : AntilipschitzWith K f) : coveringNumber (2 * K * ε) s ≤ coveringNumber ε t := by
+  grw [coveringNumber_le_packingNumber, mul_assoc, mul_left_comm,
+    packingNumber_le_packingNumber_of_antilipschitzWith hst hf,
+    packingNumber_two_mul_le_coveringNumber]
+
+/-- The smallness of the covering number is quantitatively pushed forward under surjective lipschitz
+maps. -/
+lemma coveringNumber_le_coveringNumber_of_lipschitzOnWith (hst : s.SurjOn f t) (hst' : s.MapsTo f t)
+    (hf : LipschitzOnWith K f s) : coveringNumber (K * ε) t ≤ coveringNumber ε s := by
+  rw [le_coveringNumber_iff]
+  rintro C hCs hC
+  grw [← Set.encard_image_le (f := f)]
+  exact (hC.image hf hst hCs).coveringNumber_le_encard (by grw [hCs, hst'.image_subset])
+
+/-- The smallness of the covering number is quantitatively pushed forward under surjective lipschitz
+maps. -/
+lemma packingNumber_le_packingNumber_of_lipschitzOnWith (hst : s.SurjOn f t) (hst' : s.MapsTo f t)
+    (hf : LipschitzOnWith K f s) : packingNumber (2 * K * ε) t ≤ packingNumber ε s := by
+  grw [mul_assoc, packingNumber_two_mul_le_coveringNumber,
+    coveringNumber_le_coveringNumber_of_lipschitzOnWith hst hst' hf,
+    coveringNumber_le_packingNumber]
 
 lemma coveringNumber_prod_le :
     coveringNumber ε (s ×ˢ t) ≤ coveringNumber ε s * coveringNumber ε t := by
