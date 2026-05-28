@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 module
 
+public import MeanFourier.Mathlib.Analysis.Normed.Operator.NormedSpace
 public import MeanFourier.UnitaryDual
 
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
@@ -39,7 +40,7 @@ structure BohrSet [Group G] where
 
 namespace BohrSet
 section Group
-variable [Group G] {B : BohrSet G} {ψ : UnitaryDual ℂ G} {x : G}
+variable [Group G] {B : BohrSet G} {ψ : UnitaryDual ℂ G} {x y : G}
 
 def width (B : BohrSet G) (ψ : UnitaryDual ℂ G) : ℝ≥0 := (B.ewidth ψ).toNNReal
 
@@ -130,12 +131,23 @@ lemma mem_chordSet_iff_norm_width :
 
 @[simp, norm_cast] lemma coeSort_coe (B : BohrSet G) : ↥(B : Set G) = B := rfl
 
-@[simp] lemma one_mem : 1 ∈ B.chordSet := by simp [mem_chordSet_iff_nnnorm_width]
+@[simp] lemma one_mem_chordSet : 1 ∈ B.chordSet := by simp [mem_chordSet_iff_nnnorm_width]
 
-@[simp] lemma inv_mem : x⁻¹ ∈ B.chordSet ↔ x ∈ B.chordSet := by
+@[simp] lemma inv_mem_chordSet : x⁻¹ ∈ B.chordSet ↔ x ∈ B.chordSet := by
   refine forall_congr' fun ψ ↦ ?_
   rw [← nnnorm_map ContinuousLinearMap.adjoint]
   simp [-LinearIsometryEquiv.toContinuousLinearEquiv_symm, LinearIsometryEquiv.inv_def]
+
+@[simp] lemma inv_chordSet : B.chordSet⁻¹ = B.chordSet := by ext; simp
+
+@[simp] lemma conj_mem_chordSet : y * x * y⁻¹ ∈ B.chordSet ↔ x ∈ B.chordSet := by
+  simp only [mem_chordSet_iff_nnnorm_ewidth]
+  congr! 3 with ψ
+  calc
+    ‖1 - (ψ.ρ (y * x * y⁻¹) : ψ.E →L[ℂ] ψ.E)‖₊
+    _ = ‖ψ.ρ y * (1 - ψ.ρ x : ψ.E →L[ℂ] ψ.E) * ψ.ρ y⁻¹‖₊ := by
+      simp [mul_sub, sub_mul, ← ContinuousLinearEquiv.toContinuousLinearMap_mul]
+    _ = ‖1 - (ψ.ρ x : ψ.E →L[ℂ] ψ.E)‖₊ := by simp [-map_inv]
 
 /-! ### Lattice structure -/
 
