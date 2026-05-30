@@ -7,6 +7,8 @@ module
 
 public import Mathlib.Analysis.InnerProductSpace.Adjoint
 public import Mathlib.RepresentationTheory.Irreducible
+public import MeanFourier.Mathlib.Algebra.Module.Equiv.Basic
+public import MeanFourier.Mathlib.Topology.Algebra.Module.Equiv
 
 import Mathlib.Analysis.Complex.Polynomial.Basic
 
