@@ -116,6 +116,7 @@ lemma hom_comm_apply (f : A ⟶ B) (g : G) (a : A) : f.hom (A.ρ g a) = B.ρ g (
 
 @[simp] lemma ofHom_hom (f : A ⟶ B) : ofHom f.hom = f := rfl
 
+
 @[simp] lemma ofHom_id : ofHom (.id ρ.toRepresentation) = 𝟙 (of ρ) := rfl
 
 @[simp]

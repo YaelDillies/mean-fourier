@@ -24,7 +24,7 @@ abbrev UnitaryRepresentation : Type _ := G →* E ≃ₗᵢ[𝕜] E
 
 namespace UnitaryRepresentation
 
-@[expose]
+@[expose, simps]
 noncomputable def toRepresentation (ρ : UnitaryRepresentation 𝕜 G E) : Representation 𝕜 G E where
   toFun g := ρ g
   map_one' := by simp

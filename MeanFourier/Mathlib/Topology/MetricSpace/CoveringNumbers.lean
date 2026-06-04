@@ -21,19 +21,19 @@ lemma packingNumber_le_iff : packingNumber ε s ≤ n ↔ ∀ P ⊆ s, IsSeparat
   simp [packingNumber]
 
 @[simp] lemma one_le_coveringNumber_iff : 1 ≤ coveringNumber ε s ↔ s.Nonempty := by
-  simp [ENat.one_le_iff_ne_zero, Set.nonempty_iff_ne_empty]
+  simp [Order.one_le_iff_ne_zero, Set.nonempty_iff_ne_empty]
 
 lemma coveringNumber_ne_zero_iff : coveringNumber ε s ≠ 0 ↔ s.Nonempty := by
   simp [Set.nonempty_iff_ne_empty]
 
 @[simp] lemma one_le_externalCoveringNumber_iff : 1 ≤ externalCoveringNumber ε s ↔ s.Nonempty := by
-  simp [ENat.one_le_iff_ne_zero, Set.nonempty_iff_ne_empty]
+  simp [Order.one_le_iff_ne_zero, Set.nonempty_iff_ne_empty]
 
 lemma externalCoveringNumber_ne_zero_iff : externalCoveringNumber ε s ≠ 0 ↔ s.Nonempty := by
   simp [Set.nonempty_iff_ne_empty]
 
 @[simp] lemma one_le_packingNumber_iff : 1 ≤ packingNumber ε s ↔ s.Nonempty := by
-  simp [ENat.one_le_iff_ne_zero, Set.nonempty_iff_ne_empty]
+  simp [Order.one_le_iff_ne_zero, Set.nonempty_iff_ne_empty]
 
 lemma packingNumber_ne_zero_iff : packingNumber ε s ≠ 0 ↔ s.Nonempty := by
   simp [Set.nonempty_iff_ne_empty]
