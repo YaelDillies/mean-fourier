@@ -7,7 +7,6 @@ public import MeanFourier.InvtMean
 public import MeanFourier.Mathlib.Algebra.BigOperators.GroupWithZero.Finset
 public import MeanFourier.Mathlib.Algebra.Group.Pointwise.Set.Basic
 public import MeanFourier.Mathlib.Algebra.Module.Equiv.Basic
-public import MeanFourier.Mathlib.Analysis.Normed.Operator.NormedSpace
 public import MeanFourier.Mathlib.Combinatorics.Additive.ApproximateSubgroup
 public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
 public import MeanFourier.Mathlib.Data.ENNReal.BigOperators

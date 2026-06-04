@@ -5,7 +5,6 @@ Authors: Yaël Dillies
 -/
 module
 
-public import MeanFourier.Mathlib.Analysis.Normed.Operator.NormedSpace
 public import MeanFourier.UnitaryDual
 
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
