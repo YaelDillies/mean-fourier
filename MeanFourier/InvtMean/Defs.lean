@@ -8,6 +8,10 @@ module
 public import AddCombi.Mathlib.Algebra.Notation.Indicator
 public import Mathlib.Analysis.Complex.Basic
 
+/-!
+# Invariant means
+-/
+
 public section
 
 open scoped ComplexOrder Indicator
@@ -19,13 +23,13 @@ structure InvtMean where
   IsMeasFun : (G → ℂ) → Prop
   isMeasFun_const (z : ℂ) : IsMeasFun fun _ ↦ z
   isMeasFun_translate (g : G) (f : G → ℂ) (hf : IsMeasFun f) : IsMeasFun fun h ↦ f (g⁻¹ * h)
-  bdd_of_isMeasFun (f : G → ℂ) (hf : IsMeasFun f) : ∃ C, ∀ g, ‖f g‖ ≤ C
+  bdd_of_isMeasFun (f : G → ℂ) (hf : IsMeasFun f) : BddAbove (.range (‖f ·‖))
   toFun : (G → ℂ) → ℂ
   map_zero : toFun 0 = 0
   map_add (f₁ : G → ℂ) (h₁ : IsMeasFun f₁) (f₂ : G → ℂ) (h₂ : IsMeasFun f₂) :
     toFun (f₁ + f₂) = toFun f₁ + toFun f₂
   map_smul (f : G → ℂ) (hf : IsMeasFun f) (z : ℂ) : toFun (z • f) = z • toFun f
-  map_nonneg (f : G → ℂ) (hf₀ : 0 ≤ f) : 0 ≤ toFun f
+  map_nonneg (f : G → ℂ) (hf₀ : 0 ≤ f) (hf : IsMeasFun f) : 0 ≤ toFun f
   map_translate (f : G → ℂ) (hf : IsMeasFun f) (g : G) : toFun (fun h ↦ f (g⁻¹ * h)) = toFun f
 
 namespace InvtMean
@@ -48,10 +52,16 @@ protected lemma IsMeasFun.ofNat {n : ℕ} [n.AtLeastTwo] : m.IsMeasFun ofNat(n) 
 lemma IsMeasFun.translate (hf : m.IsMeasFun f) : m.IsMeasFun fun h ↦ f (g⁻¹ * h) :=
   m.isMeasFun_translate _ _ hf
 
-lemma IsMeasFun.bdd (hf : m.IsMeasFun f) : ∃ C, ∀ g, ‖f g‖ ≤ C := m.bdd_of_isMeasFun _ hf
+lemma IsMeasFun.bdd (hf : m.IsMeasFun f) : BddAbove (.range (‖f ·‖)) := m.bdd_of_isMeasFun _ hf
 
 variable (m) in
+@[expose]
 def real (f : G → ℝ) : ℝ := (m fun g ↦ f g).re
+
+@[simp] lemma real_mk (IsMeasFun isMeasFun_const isMeasFun_translate bdd_of_isMeasFun toFun map_zero
+    map_add map_smul map_nonneg map_translate) (f : G → ℝ) :
+    (mk IsMeasFun isMeasFun_const isMeasFun_translate bdd_of_isMeasFun toFun map_zero map_add
+      map_smul map_nonneg map_translate).real f = (toFun fun g ↦ f g).re := rfl
 
 instance : CoeFun (InvtMean G) fun _ ↦ (G → ℝ) → ℝ where coe := real
 

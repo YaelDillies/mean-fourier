@@ -6,7 +6,7 @@ Authors: Yaël Dillies
 module
 
 public import Mathlib.Combinatorics.Additive.CovBySMul
-public import MeanFourier.InvtMean
+public import MeanFourier.InvtMean.Defs
 
 /-!
 # L^2(m)
