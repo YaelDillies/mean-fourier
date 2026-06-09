@@ -78,6 +78,6 @@ variable (m A) in
   classical simp [l2Norm, Set.indicator_apply, apply_ite, norm_one, real]
 
 variable (m A) in
-def IsMeasSet : Prop := m.IsMeasFun 𝟭_[A]
+@[expose] def IsMeasSet : Prop := m.IsMeasFun 𝟭_[A]
 
 end InvtMean

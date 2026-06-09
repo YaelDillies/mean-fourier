@@ -5,6 +5,7 @@ public import MeanFourier.BohrSet.Defs
 public import MeanFourier.BohrSet.Regular
 public import MeanFourier.InvtMean.Defs
 public import MeanFourier.InvtMean.Foelner
+public import MeanFourier.Mathlib.Algebra.BigOperators.Expect
 public import MeanFourier.Mathlib.Algebra.BigOperators.GroupWithZero.Finset
 public import MeanFourier.Mathlib.Algebra.Group.Pointwise.Set.Basic
 public import MeanFourier.Mathlib.Algebra.Module.Equiv.Basic
@@ -20,6 +21,7 @@ public import MeanFourier.Mathlib.Data.Fintype.Pi
 public import MeanFourier.Mathlib.Data.Real.ENatENNReal
 public import MeanFourier.Mathlib.Data.Set.Prod
 public import MeanFourier.Mathlib.MeasureTheory.Group.FoelnerFilter
+public import MeanFourier.Mathlib.MeasureTheory.Integral.Average
 public import MeanFourier.Mathlib.MeasureTheory.Measure.Count
 public import MeanFourier.Mathlib.SetTheory.Cardinal.Finite
 public import MeanFourier.Mathlib.Topology.Algebra.Module.Equiv
