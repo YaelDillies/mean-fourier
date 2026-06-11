@@ -62,16 +62,16 @@ lemma ewidth_injective : Function.Injective (BohrSet.ewidth (G := G)) := by
   case frequencies => rw [B₁.mem_frequencies, B₂.mem_frequencies, h]
 
 /-- Construct a Bohr set on a finite group given an extended width function. -/
-noncomputable def ofEwidth [Finite G] (ewidth : UnitaryDual ℂ G → ℝ≥0∞) : BohrSet G where
-  frequencies := {ψ | ewidth ψ < ⊤}
-  ewidth := ewidth
+noncomputable def ofEwidth [Finite G] (ρ : UnitaryDual ℂ G → ℝ≥0∞) : BohrSet G where
+  frequencies := {ψ | ρ ψ < ⊤}
+  ewidth := ρ
   mem_frequencies ψ := by simp
 
 /-- Construct a Bohr set on a finite group given a width function and a frequency set. -/
-noncomputable def ofWidth (width : UnitaryDual ℂ G → ℝ≥0) (freq : Finset (UnitaryDual ℂ G)) :
+noncomputable def ofWidth (Γ : Finset (UnitaryDual ℂ G)) (ρ : UnitaryDual ℂ G → ℝ≥0) :
     BohrSet G where
-  frequencies := freq
-  ewidth ψ := open scoped Classical in if ψ ∈ freq then width ψ else ⊤
+  frequencies := Γ
+  ewidth ψ := open scoped Classical in if ψ ∈ Γ then ρ ψ else ⊤
   mem_frequencies ψ := by simp [lt_top_iff_ne_top]
 
 @[ext]
