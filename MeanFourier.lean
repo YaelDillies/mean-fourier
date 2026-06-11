@@ -28,6 +28,7 @@ public import MeanFourier.Mathlib.Topology.Algebra.Module.Equiv
 public import MeanFourier.Mathlib.Topology.MetricSpace.Cover
 public import MeanFourier.Mathlib.Topology.MetricSpace.CoveringNumbers
 public import MeanFourier.Mathlib.Topology.MetricSpace.MetricSeparated
+public import MeanFourier.Translate
 public import MeanFourier.UnitaryDual
 public import MeanFourier.UnitaryRep
 public import MeanFourier.UnitaryRepresentation
