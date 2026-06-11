@@ -99,6 +99,8 @@ Note that this set **does not** uniquely determine `B`. -/
 @[coe] def chordSet (B : BohrSet G) : Set G :=
   {x | ∀ ψ, ‖1 - (ψ x : ψ.E →L[ℂ] ψ.E)‖₊ ≤ B.ewidth ψ}
 
+scoped notation3 "Bohr(" Γ", " ρ ")" => (ofWidth Γ ρ).chordSet
+
 /-- Given the Bohr set `B`, `B.Elem` is the `Type` of elements of `B`. -/
 @[coe] abbrev Elem (B : BohrSet G) : Type _ := B.chordSet
 
@@ -371,6 +373,14 @@ lemma chordSet_smul_add_chordSet_smul_subset {ρ₁ ρ₂ : ℝ} (hρ₁ : 0 ≤
     (ρ₁ • B).chordSet * (ρ₂ • B).chordSet ⊆ ((ρ₁ + ρ₂) • B).chordSet :=
   chordSet_mul_chordSet_subset fun ψ => by
     simp only [Pi.add_apply, ewidth_smul]; split <;> simp [add_nonneg, add_mul, *]
+
+lemma chordSet_pow_subset : ∀ {n : ℕ}, B.chordSet ^ n ⊆ ((n : ℝ) • B).chordSet
+  | 0 => by simp
+  | n + 1 => by
+    grw [pow_succ, chordSet_pow_subset]
+    refine chordSet_mul_chordSet_subset fun ψ ↦ ?_
+    simp [add_nonneg, add_one_mul]
+    split <;> simp
 
 end Group
 
