@@ -7,6 +7,7 @@ module
 
 public import AddCombi.Mathlib.Algebra.Notation.Indicator
 public import Mathlib.Analysis.Complex.Basic
+public import Mathlib.Analysis.Convex.Topology
 public import MeanFourier.Mathlib.Analysis.Normed.Group.Pointwise
 public import MeanFourier.Mathlib.Analysis.Normed.Module.Ball.Pointwise
 public import MeanFourier.Translate
@@ -124,3 +125,26 @@ variable (m A) in
 
 end Complex
 end InvtMean
+
+variable {G : Type*} [Group G] {f : G → ℂ}
+
+variable (f) in
+abbrev IsMenable : Prop :=
+  BddAbove (Set.range (‖f ·‖)) ∧
+    ∃! z : ℂ, Function.const G z ∈ closure (convexHull ℝ (translates f))
+
+namespace IsMenable
+variable {z : ℂ}
+
+variable (hf : IsMenable f)
+
+noncomputable def mean : ℂ := hf.2.choose
+
+lemma eq_mean (h : Function.const G z ∈ closure (convexHull ℝ (translates f))) :
+    z = hf.mean := hf.2.choose_spec.2 z h
+
+lemma exists_norm_le (hf : IsMenable f) : ∃ C : ℝ, ∀ u, ‖f u‖ ≤ C :=
+  let ⟨C, hC⟩ := hf.1
+  ⟨C, fun u ↦ hC ⟨u, rfl⟩⟩
+
+end IsMenable
