@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Algebra.Group.Pointwise.Finset.Scalar
 public import Mathlib.Analysis.SpecificLimits.Basic
+public import Mathlib.Topology.Instances.ENNReal.Lemmas
 public import MeanFourier.InvtMean.Defs
 public import MeanFourier.Mathlib.Algebra.BigOperators.Expect
 public import MeanFourier.Mathlib.MeasureTheory.Group.FoelnerFilter
@@ -91,9 +92,24 @@ open scoped Pointwise symmDiff Topology
 
 variable {ι : Type*} [DecidableEq G] {g : G → ℂ} {l : Filter ι} {F : ι → Finset G} {Cf Cg : ℝ}
 
-def IsFoelnerNet (l : Filter ι) (F : ι → Finset G) : Prop :=
-  (∀ᶠ i in l, (F i).Nonempty) ∧
-    ∀ x : G, Tendsto (fun i ↦ (((x • F i) ∆ F i).card : ℝ) / (F i).card) l (𝓝 0)
+omit [DecidableEq G] in
+lemma nonempty_of_finset [MeasurableSpace G] {F : ι → Finset G}
+    (hFol : IsFoelner G Measure.count l (fun i ↦ (F i : Set G))) :
+    ∀ᶠ i in l, (F i).Nonempty :=
+  hFol.eventually_meas_ne_zero.mono fun _ ↦ Measure.count_ne_zero_iff.mp
+
+lemma tendsto_card_ratio [MeasurableSpace G] [MeasurableSingletonClass G] {F : ι → Finset G}
+    (hFol : IsFoelner G Measure.count l (fun i ↦ (F i : Set G))) (x : G) :
+    Tendsto (fun i ↦ (((x • F i) ∆ F i).card : ℝ) / (F i).card) l (𝓝 0) := by
+  have h_eq : (fun i ↦ (Measure.count ((x • (F i : Set G)) ∆ (F i : Set G)) /
+      Measure.count (F i : Set G)).toReal) =
+      fun i ↦ (((x • F i) ∆ F i).card : ℝ) / (F i).card := by
+    ext i
+    have : (x • (F i : Set G)) ∆ (F i : Set G) = ↑((x • F i) ∆ F i) := by
+      simp [← Finset.coe_smul_finset, ← Finset.coe_symmDiff]
+    rw [this, Measure.count_apply_finset, Measure.count_apply_finset, ENNReal.toReal_div]
+    simp [ENNReal.toReal_natCast]
+  exact h_eq ▸ (ENNReal.tendsto_toReal (by simp)).comp (hFol.tendsto_meas_smul_symmDiff x)
 
 noncomputable def flatten (T : Finset G) (φ : G → ℂ) : G → ℂ :=
   fun y ↦ (T.card : ℂ)⁻¹ * ∑ x ∈ T, φ (x⁻¹ * y)
@@ -304,10 +320,14 @@ lemma exists_const_limit {J : Type*} (U : Ultrafilter J) {FJ : J → Finset G}
   have hzc : zfun = Function.const G (zfun 1) := funext fun y ↦ hconst y 1
   grind
 
-lemma IsMenable.eq_mean_add_of_const_mem [l.NeBot] (hf : IsMenable f) (hg : IsMenable g)
-    (hFol : IsFoelnerNet l F) (hCf : ∀ u, ‖f u‖ ≤ Cf) (hCg : ∀ u, ‖g u‖ ≤ Cg) {c : ℂ}
+omit [DecidableEq G] in
+lemma IsMenable.eq_mean_add_of_const_mem [l.NeBot] [MeasurableSpace G] [MeasurableSingletonClass G]
+    (hf : IsMenable f) (hg : IsMenable g)
+    (hFol : IsFoelner G Measure.count l (fun i ↦ (F i : Set G)))
+    (hCf : ∀ u, ‖f u‖ ≤ Cf) (hCg : ∀ u, ‖g u‖ ≤ Cg) {c : ℂ}
     (hc : Function.const G c ∈ closure (convexHull ℝ (translates (f + g)))) :
     c = hf.mean + hg.mean := by
+  classical
   set L : Filter ((ι × Finset G) × ℕ) := (l ×ˢ atTop) ×ˢ atTop with hLdef
   haveI : L.NeBot := by rw [hLdef]; infer_instance
   have hch : ∀ j : (ι × Finset G) × ℕ, ∃ q ∈ convexHull ℝ (translates (f + g)),
@@ -318,10 +338,10 @@ lemma IsMenable.eq_mean_add_of_const_mem [l.NeBot] (hf : IsMenable f) (hg : IsMe
   set FJ : (ι × Finset G) × ℕ → Finset G := fun j ↦ F j.1.1
   have hπ : Tendsto (fun j : (ι × Finset G) × ℕ ↦ j.1.1) L l :=
     tendsto_fst.comp tendsto_fst
-  have hneJ : ∀ᶠ j in L, (FJ j).Nonempty := hπ.eventually hFol.1
+  have hneJ : ∀ᶠ j in L, (FJ j).Nonempty := hπ.eventually (nonempty_of_finset hFol)
   have hdefJ : ∀ g₀ : G,
       Tendsto (fun j ↦ (((g₀ • FJ j) ∆ FJ j).card : ℝ) / (FJ j).card) L (𝓝 0) :=
-    fun g₀ ↦ (hFol.2 g₀).comp hπ
+    fun g₀ ↦ (tendsto_card_ratio hFol g₀).comp hπ
   obtain ⟨U, hU⟩ := Ultrafilter.exists_le L
   obtain ⟨zf, hzfmem, hzft⟩ :=
     exists_const_limit U (hneJ.filter_mono hU) (fun g₀ ↦ (hdefJ g₀).mono_left hU) hCf hqf
@@ -338,8 +358,8 @@ lemma IsMenable.eq_mean_add_of_const_mem [l.NeBot] (hf : IsMenable f) (hg : IsMe
       (𝓝 (Function.const G c)) := by
     rw [tendsto_pi_nhds]
     intro y
-    have h1 : ∀ᶠ S : Finset G in atTop, y ∈ S := by
-      filter_upwards [eventually_ge_atTop {y}] with S hS using Finset.singleton_subset_iff.1 hS
+    have h1 : ∀ᶠ S : Finset G in atTop, y ∈ S :=
+      eventually_ge_atTop {y} |>.mono fun _ ↦ Finset.singleton_subset_iff.1
     have h2 : ∀ᶠ p : ι × Finset G in l ×ˢ atTop, y ∈ p.2 := tendsto_snd.eventually h1
     have hyS : ∀ᶠ j in L, y ∈ j.1.2 := tendsto_fst.eventually h2
     have hev : ∀ᶠ j in L, ‖flatten (FJ j) (q j) y - c‖ ≤ 1 / (j.2 + 1) := by
@@ -376,28 +396,36 @@ lemma IsMenable.eq_mean_add_of_const_mem [l.NeBot] (hf : IsMenable f) (hg : IsMe
   rw [← hf.eq_mean hzfmem, ← hg.eq_mean hzgmem]
   simp_all
 
-lemma IsMenable.const_mean_add_mem [l.NeBot] (hf : IsMenable f) (hg : IsMenable g)
-    (hFol : IsFoelnerNet l F) (hCf : ∀ u, ‖f u‖ ≤ Cf) (hCg : ∀ u, ‖g u‖ ≤ Cg) :
+omit [DecidableEq G] in
+lemma IsMenable.const_mean_add_mem [l.NeBot] [MeasurableSpace G] [MeasurableSingletonClass G]
+    (hf : IsMenable f) (hg : IsMenable g)
+    (hFol : IsFoelner G Measure.count l (fun i ↦ (F i : Set G)))
+    (hCf : ∀ u, ‖f u‖ ≤ Cf) (hCg : ∀ u, ‖g u‖ ≤ Cg) :
     Function.const G (hf.mean + hg.mean) ∈
     closure (convexHull ℝ (translates (f + g))) := by
+  classical
   obtain ⟨U, hU⟩ := Ultrafilter.exists_le l
-  have hCfg : ∀ u, ‖(f + g) u‖ ≤ Cf + Cg := fun u ↦
-    (norm_add_le _ _).trans (add_le_add (hCf u) (hCg u))
-  obtain ⟨z, hzmem, -⟩ := exists_const_limit U (hFol.1.filter_mono hU)
-    (fun g₀ ↦ ((hFol.2 g₀).mono_left hU)) hCfg
+  obtain ⟨z, hzmem, -⟩ := exists_const_limit U ((nonempty_of_finset hFol).filter_mono hU)
+    (fun g₀ ↦ ((tendsto_card_ratio hFol g₀).mono_left hU))
+    (fun u ↦ (norm_add_le _ _).trans (add_le_add (hCf u) (hCg u)))
     (fun _ ↦ subset_convexHull ℝ _ (self_mem_translates (f + g)))
   rwa [hf.eq_mean_add_of_const_mem hg hFol hCf hCg hzmem] at hzmem
 
-protected theorem IsMenable.add [l.NeBot] (hf : IsMenable f) (hg : IsMenable g)
-    (hFol : IsFoelnerNet l F) : IsMenable (f + g) :=
+omit [DecidableEq G] in
+protected theorem IsMenable.add [l.NeBot] [MeasurableSpace G] [MeasurableSingletonClass G]
+    (hf : IsMenable f) (hg : IsMenable g)
+    (hFol : IsFoelner G Measure.count l (fun i ↦ (F i : Set G))) : IsMenable (f + g) :=
   let ⟨Cf, hCf⟩ := hf.exists_norm_le
   let ⟨Cg, hCg⟩ := hg.exists_norm_le
   ⟨⟨Cf + Cg, fun _ ⟨u, hu⟩ ↦ hu ▸ (norm_add_le _ _).trans (add_le_add (hCf u) (hCg u))⟩,
     hf.mean + hg.mean, hf.const_mean_add_mem hg hFol hCf hCg,
     fun _ hw ↦ hf.eq_mean_add_of_const_mem hg hFol hCf hCg hw⟩
 
-theorem IsMenable.mean_add [l.NeBot] (hf : IsMenable f) (hg : IsMenable g)
-    (hFol : IsFoelnerNet l F) : (hf.add hg hFol).mean = hf.mean + hg.mean :=
+omit [DecidableEq G] in
+theorem IsMenable.mean_add [l.NeBot] [MeasurableSpace G] [MeasurableSingletonClass G]
+    (hf : IsMenable f) (hg : IsMenable g)
+    (hFol : IsFoelner G Measure.count l (fun i ↦ (F i : Set G))) :
+    (hf.add hg hFol).mean = hf.mean + hg.mean :=
   let ⟨_, hCf⟩ := hf.exists_norm_le
   let ⟨_, hCg⟩ := hg.exists_norm_le
   ((hf.add hg hFol).eq_mean (hf.const_mean_add_mem hg hFol hCf hCg)).symm
