@@ -6,7 +6,6 @@ Authors: Yaël Dillies
 module
 
 public import MeanFourier.InvtMean.Defs
-public import MeanFourier.Mathlib.Algebra.BigOperators.Expect
 public import MeanFourier.Mathlib.MeasureTheory.Integral.Average
 public import MeanFourier.Mathlib.MeasureTheory.Group.FoelnerFilter
 public import MeanFourier.Mathlib.MeasureTheory.Measure.Count
@@ -70,7 +69,7 @@ noncomputable def foelner : InvtMean G where
 @[simp high] lemma foelner_count_indicator_one_finset [MeasurableSingletonClass G] [Fintype G]
     (A : Finset G) :
     foelner .count l (fun _ ↦ .univ) .univ_of_isFiniteMeasure 𝟭_[(A : Set G)] = A.dens := by
-  classical simp [foelner, tendsto_const_nhds.limUnder_eq]
+  simp [foelner, tendsto_const_nhds.limUnder_eq, ← Pi.one_def]
 
 @[simp] lemma foelner_count_indicator_one [MeasurableSingletonClass G] [Fintype G] (A : Set G) :
     foelner .count l (fun _ ↦ .univ) .univ_of_isFiniteMeasure 𝟭_[(A : Set G)] =

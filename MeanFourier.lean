@@ -6,7 +6,6 @@ public import MeanFourier.BohrSet.Doubling
 public import MeanFourier.BohrSet.Regular
 public import MeanFourier.InvtMean.Defs
 public import MeanFourier.InvtMean.Foelner
-public import MeanFourier.Mathlib.Algebra.BigOperators.Expect
 public import MeanFourier.Mathlib.Algebra.BigOperators.GroupWithZero.Finset
 public import MeanFourier.Mathlib.Algebra.Group.Pointwise.Set.Basic
 public import MeanFourier.Mathlib.Algebra.Module.Equiv.Basic
