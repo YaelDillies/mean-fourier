@@ -9,6 +9,8 @@ public import MeanFourier.Mathlib.Algebra.BigOperators.Expect
 public import MeanFourier.Mathlib.Algebra.BigOperators.GroupWithZero.Finset
 public import MeanFourier.Mathlib.Algebra.Group.Pointwise.Set.Basic
 public import MeanFourier.Mathlib.Algebra.Module.Equiv.Basic
+public import MeanFourier.Mathlib.Analysis.Normed.Group.Pointwise
+public import MeanFourier.Mathlib.Analysis.Normed.Module.Ball.Pointwise
 public import MeanFourier.Mathlib.Combinatorics.Additive.ApproximateSubgroup
 public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
 public import MeanFourier.Mathlib.Data.ENNReal.BigOperators
@@ -25,6 +27,7 @@ public import MeanFourier.Mathlib.MeasureTheory.Integral.Average
 public import MeanFourier.Mathlib.MeasureTheory.Measure.Count
 public import MeanFourier.Mathlib.SetTheory.Cardinal.Finite
 public import MeanFourier.Mathlib.Topology.Algebra.Module.Equiv
+public import MeanFourier.Mathlib.Topology.Bornology.Basic
 public import MeanFourier.Mathlib.Topology.MetricSpace.Cover
 public import MeanFourier.Mathlib.Topology.MetricSpace.CoveringNumbers
 public import MeanFourier.Mathlib.Topology.MetricSpace.MetricSeparated

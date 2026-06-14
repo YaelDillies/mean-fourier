@@ -35,3 +35,13 @@ lemma univ_pi_pow (t : ∀ i, Set (M i)) : ∀ n : ℕ, univ.pi t ^ n = univ.pi 
   | n + 1 => by simp [pi_pow]
 
 end Set
+
+namespace Set
+variable {α M : Type*} [Monoid M] {f g : α → M}
+
+-- TODO: How to most efficiently `to_fun` this?
+@[to_additive]
+lemma range_mul_subset : range (f * g) ⊆ range f * range g := by
+  simp [range_subset_iff, Set.mul_mem_mul]
+
+end Set
