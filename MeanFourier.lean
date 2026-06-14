@@ -39,4 +39,5 @@ public import MeanFourier.Translate
 public import MeanFourier.UnitaryDual
 public import MeanFourier.UnitaryRep
 public import MeanFourier.UnitaryRepresentation
+public import MeanFourier.VCDim.ArithmeticRegularity
 public import MeanFourier.VCDim.Averaging
