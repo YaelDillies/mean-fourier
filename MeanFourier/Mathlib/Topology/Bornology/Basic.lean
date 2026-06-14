@@ -19,7 +19,7 @@ public section
 variable {α X : Type*} [Bornology X]
 
 namespace Bornology
-variable {x : X}
+variable {x : X} {f : α → X}
 
 @[expose, fun_prop] def IsBddFun (f : α → X) : Prop := IsBounded (.range f)
 
@@ -40,5 +40,7 @@ protected lemma IsBddFun.ofNat [NatCast X] {n : ℕ} [n.AtLeastTwo] : IsBddFun (
 
 @[simp, fun_prop]
 protected lemma IsBddFun.intCast [IntCast X] {n : ℤ} : IsBddFun (n : α → X) := .const
+
+@[fun_prop] lemma IsBddFun.of_finite [Finite α] : IsBddFun f := (Set.finite_range _).isBounded
 
 end Bornology
