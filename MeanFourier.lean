@@ -14,6 +14,7 @@ public import MeanFourier.Mathlib.Analysis.Normed.Module.Ball.Pointwise
 public import MeanFourier.Mathlib.Combinatorics.Additive.ApproximateSubgroup
 public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
 public import MeanFourier.Mathlib.Combinatorics.Additive.VCDim
+public import MeanFourier.Mathlib.Combinatorics.SetFamily.HausslerPacking
 public import MeanFourier.Mathlib.Combinatorics.SetFamily.VCDim
 public import MeanFourier.Mathlib.Data.ENNReal.BigOperators
 public import MeanFourier.Mathlib.Data.ENNReal.Operations
