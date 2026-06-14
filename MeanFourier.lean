@@ -13,6 +13,8 @@ public import MeanFourier.Mathlib.Analysis.Normed.Group.Pointwise
 public import MeanFourier.Mathlib.Analysis.Normed.Module.Ball.Pointwise
 public import MeanFourier.Mathlib.Combinatorics.Additive.ApproximateSubgroup
 public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
+public import MeanFourier.Mathlib.Combinatorics.Additive.VCDim
+public import MeanFourier.Mathlib.Combinatorics.SetFamily.VCDim
 public import MeanFourier.Mathlib.Data.ENNReal.BigOperators
 public import MeanFourier.Mathlib.Data.ENNReal.Operations
 public import MeanFourier.Mathlib.Data.ENat.Basic
@@ -21,6 +23,7 @@ public import MeanFourier.Mathlib.Data.Finset.Pi
 public import MeanFourier.Mathlib.Data.Fintype.BigOperators
 public import MeanFourier.Mathlib.Data.Fintype.Pi
 public import MeanFourier.Mathlib.Data.Real.ENatENNReal
+public import MeanFourier.Mathlib.Data.Set.Card
 public import MeanFourier.Mathlib.Data.Set.Prod
 public import MeanFourier.Mathlib.MeasureTheory.Group.FoelnerFilter
 public import MeanFourier.Mathlib.MeasureTheory.Integral.Average
