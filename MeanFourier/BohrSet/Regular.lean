@@ -22,9 +22,9 @@ variable {G : Type*} [Group G] {B : BohrSet G} {x : G} {ρ ε : ℝ}
 /-- A Bohr set `B` is *regular* if the dilates of `B` by numbers close to `1` are of comparable size
 to `B`. -/
 structure IsRegular (B : BohrSet G) : Prop where
-  le_card_smul (κ : ℝ) (hκ₀ : 0 ≤ κ) (hκ : κ ≤ B.dimSqRank / 100) :
+  le_card_smul (κ : ℝ) (hκ₀ : 0 ≤ κ) (hκ : κ ≤ (100 * B.dimSqRank : ℝ)⁻¹) :
     (1 - 100 * B.dimSqRank * κ) * Nat.card B ≤ Nat.card ↥((1 - κ) • B)
-  card_smul_le (κ : ℝ) (hκ₀ : 0 ≤ κ) (hκ : κ ≤ B.dimSqRank / 100) :
+  card_smul_le (κ : ℝ) (hκ₀ : 0 ≤ κ) (hκ : κ ≤ (100 * B.dimSqRank : ℝ)⁻¹) :
     Nat.card ↥((1 + κ) • B) ≤ (1 + 100 * B.dimSqRank * κ) * Nat.card B
 
 /-- **Bohr Set Regularity**. Any Bohr set can be dilated by a small amount to become a regular Bohr

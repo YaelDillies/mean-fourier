@@ -29,7 +29,7 @@ lemma mem_l2AP : t ∈ AP_L^2(m)(f, ε) ↔ m.l2Norm ((fun g ↦ f (t⁻¹ * g))
 
 @[simp high]
 lemma mem_l2AP_indicator_one :
-    t ∈ AP_L^2(m)(𝟭_[A], ε) ↔ m (𝟭_[t • A] - 𝟭_[A]) ≤ ε ^ 2 * m 𝟭_[A] := by
+    t ∈ AP_L^2(m)(𝟭_[A], ε) ↔ m (|𝟭_[t • A] - 𝟭_[A]|) ≤ ε ^ 2 * m 𝟭_[A] := by
   sorry
 
 variable (m K f) in
