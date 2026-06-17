@@ -64,12 +64,3 @@ variable {f : G → α}
 
 @[simp] lemma translate_add_right {β : Type*} [Add β] (x : G) (f g : G → β) :
     τ_[x] (f + g) = τ_[x] f + τ_[x] g := rfl
-
-variable (f) in
-abbrev translates : Set (G → α) := Set.range fun x : G ↦ τ_[x] f
-
-lemma mem_translates {g : G → α} : g ∈ translates f ↔ ∃ x : G, τ_[x] f = g := Iff.rfl
-
-lemma translate_mem_translates (f : G → α) (x : G) : τ_[x] f ∈ translates f := ⟨x, rfl⟩
-
-lemma self_mem_translates (f : G → α) : f ∈ translates f := ⟨1, Function.translate_one f⟩

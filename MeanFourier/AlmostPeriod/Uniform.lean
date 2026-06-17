@@ -9,6 +9,7 @@ public import Mathlib.Analysis.RCLike.Basic
 public import Mathlib.Combinatorics.Additive.CovBySMul
 public import MeanFourier.Mathlib.Topology.Bornology.Basic
 public import MeanFourier.AlmostConvergent
+public import MeanFourier.UnitaryRepresentation
 
 /-!
 # Uniformly almost-periodic functions
@@ -124,3 +125,56 @@ protected lemma IsUAP.isBddFun (hf : IsUAP f) : IsBddFun f := by
 protected lemma IsUAP.isAlmostConvergent [NormedSpace ℝ E] (hf : IsUAP f) :
     IsAlmostConvergent f := by
   sorry
+
+open scoped Pointwise InnerProductSpace in
+theorem UnitaryRepresentation.isUAP_inner {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℂ E] [FiniteDimensional ℂ E]
+    (ρ : UnitaryRepresentation ℂ G E) (v w : E) :
+    IsUAP fun x ↦ ⟪ρ x v, w⟫_ℂ := by
+  classical
+  intro ε hε
+  have : ProperSpace E := FiniteDimensional.proper ℂ E
+  have horb : TotallyBounded (Set.range fun t : G ↦ ρ t w) := by
+    refine (isCompact_closedBall (0 : E) ‖w‖).totallyBounded.subset ?_
+    rintro - ⟨t, rfl⟩
+    simp
+  set ε' : ℝ := ε / (‖v‖ + 1) with hε'
+  have hε'pos : 0 < ε' := by positivity
+  obtain ⟨c, hcsub, hcfin, hccover⟩ := totallyBounded_iff_subset.1 horb _
+    (Metric.dist_mem_uniformity hε'pos)
+  have hch : ∀ y ∈ c, ∃ t : G, ρ t w = y := fun y hy ↦ hcsub hy
+  choose! tc htc using hch
+  set F : Finset G := hcfin.toFinset.image tc
+  refine ⟨#F, F, le_rfl, ?_⟩
+  rintro x -
+  have hx : ρ x w ∈ ⋃ y ∈ c, {z | (z, y) ∈ {p : E × E | dist p.1 p.2 < ε'}} :=
+    hccover ⟨x, rfl⟩
+  rw [Set.mem_iUnion₂] at hx
+  obtain ⟨y, hy, hxy⟩ := hx
+  refine ⟨tc y, Finset.mem_image_of_mem _ (hcfin.mem_toFinset.2 hy), (tc y)⁻¹ * x, ?_, ?_⟩
+  · rw [mem_uniformAP]
+    intro z
+    have hkey : ∀ s : G, ⟪ρ (s⁻¹ * z) v, w⟫_ℂ = ⟪ρ z v, ρ s w⟫_ℂ := by
+      intro s
+      have h1 : ρ (s⁻¹ * z) v = (ρ s).symm (ρ z v) := by simp
+      rw [h1]
+      calc ⟪(ρ s).symm (ρ z v), w⟫_ℂ
+          = ⟪ρ s ((ρ s).symm (ρ z v)), ρ s w⟫_ℂ := ((ρ s).inner_map_map _ _).symm
+        _ = ⟪ρ z v, ρ s w⟫_ℂ := by simp
+    have h1 : ((tc y)⁻¹ * x)⁻¹ * z = x⁻¹ * (tc y * z) := by group
+    have h2 : z = (tc y)⁻¹ * (tc y * z) := by group
+    rw [h1, h2, hkey x, hkey (tc y), ← inner_sub_right]
+    calc ‖⟪ρ (tc y * z) v, ρ x w - ρ (tc y) w⟫_ℂ‖
+        ≤ ‖ρ (tc y * z) v‖ * ‖ρ x w - ρ (tc y) w‖ := norm_inner_le_norm _ _
+      _ = ‖v‖ * ‖ρ x w - ρ (tc y) w‖ := by simp
+      _ ≤ ‖v‖ * ε' := by
+          gcongr
+          rw [htc y hy, ← dist_eq_norm]
+          exact hxy.le
+      _ ≤ ε := by
+          rw [hε']
+          have : ‖v‖ * (ε / (‖v‖ + 1)) = ε * (‖v‖ / (‖v‖ + 1)) := by ring
+          rw [this]
+          refine mul_le_of_le_one_right hε.le ?_
+          exact div_le_one_of_le₀ (by linarith) (by positivity)
+  · exact mul_inv_cancel_left (tc y) x

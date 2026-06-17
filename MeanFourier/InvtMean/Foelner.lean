@@ -140,12 +140,12 @@ lemma flatten_translate (T : Finset G) (φ : G → ℂ) (z : G) :
 
 omit [DecidableEq G] in
 lemma flatten_mem_convexHull_translates {T : Finset G} (hT : T.Nonempty) (φ : G → ℂ) :
-    flatten T φ ∈ convexHull ℝ (translates φ) := by
+    flatten T φ ∈ convexHull ℝ (Set.range fun x ↦ τ_[x] φ) := by
   have hsum : ∑ _x ∈ T, ((T.card : ℝ))⁻¹ = 1 := by
     rw [Finset.sum_const, nsmul_eq_mul, mul_inv_cancel₀ (by exact_mod_cast hT.card_pos.ne')]
   have hmem := Finset.centerMass_mem_convexHull T (w := fun _ ↦ ((T.card : ℝ))⁻¹)
     (z := fun x ↦ τ_[x] φ) (fun i _ ↦ by positivity) (hsum.symm ▸ zero_lt_one)
-    (fun x _ ↦ translate_mem_translates φ x)
+    (fun x _ ↦ Set.mem_range_self x)
   have hflat : (∑ x ∈ T, ((T.card : ℝ))⁻¹ • τ_[x] φ) = flatten T φ := by
     ext y
     simp [flatten, ← Finset.mul_sum]
@@ -153,8 +153,8 @@ lemma flatten_mem_convexHull_translates {T : Finset G} (hT : T.Nonempty) (φ : G
 
 omit [DecidableEq G] in
 lemma flatten_mem_convexHull_of_mem {T : Finset G} (hT : T.Nonempty) {φ q : G → ℂ}
-    (hq : q ∈ convexHull ℝ (translates φ)) :
-    flatten T q ∈ convexHull ℝ (translates φ) := by
+    (hq : q ∈ convexHull ℝ (Set.range fun x ↦ τ_[x] φ)) :
+    flatten T q ∈ convexHull ℝ (Set.range fun x ↦ τ_[x] φ) := by
   classical
   have hlin : IsLinearMap ℝ (flatten T) := by
     constructor
@@ -163,7 +163,7 @@ lemma flatten_mem_convexHull_of_mem {T : Finset G} (hT : T.Nonempty) {φ q : G �
       ext y
       simp only [flatten, Pi.smul_apply, Complex.real_smul, ← Finset.mul_sum]
       ring
-  have himg : flatten T q ∈ flatten T '' convexHull ℝ (translates φ) := ⟨q, hq, rfl⟩
+  have himg : flatten T q ∈ flatten T '' convexHull ℝ (Set.range fun x ↦ τ_[x] φ) := ⟨q, hq, rfl⟩
   rw [hlin.image_convexHull] at himg
   refine convexHull_min ?_ (convex_convexHull ℝ _) himg
   rintro - ⟨-, ⟨z, rfl⟩, rfl⟩
@@ -172,7 +172,7 @@ lemma flatten_mem_convexHull_of_mem {T : Finset G} (hT : T.Nonempty) {φ q : G �
 
 omit [DecidableEq G] in
 lemma norm_le_of_mem_convexHull_translates {φ q : G → ℂ} {C : ℝ}
-    (hC : ∀ u, ‖φ u‖ ≤ C) (hq : q ∈ convexHull ℝ (translates φ)) : ∀ u, ‖q u‖ ≤ C := by
+    (hC : ∀ u, ‖φ u‖ ≤ C) (hq : q ∈ convexHull ℝ (Set.range fun x ↦ τ_[x] φ)) : ∀ u, ‖q u‖ ≤ C := by
   have hconv : Convex ℝ {p : G → ℂ | ∀ v, ‖p v‖ ≤ C} := by
     intro p₁ h₁ p₂ h₂ a b ha hb hab v
     calc
@@ -267,8 +267,10 @@ lemma exists_mem_of_mem_closure {s : Set (G → ℂ)} {q₀ : G → ℂ} (h : q�
   grind
 
 omit [DecidableEq G] in
-lemma exists_add_decomp {q : G → ℂ} (hq : q ∈ convexHull ℝ (translates (f + g))) :
-    ∃ qf ∈ convexHull ℝ (translates f), ∃ qg ∈ convexHull ℝ (translates g), q = qf + qg := by
+lemma exists_add_decomp {q : G → ℂ}
+    (hq : q ∈ convexHull ℝ (Set.range fun x ↦ τ_[x] (f + g))) :
+    ∃ qf ∈ convexHull ℝ (Set.range fun x ↦ τ_[x] f),
+      ∃ qg ∈ convexHull ℝ (Set.range fun x ↦ τ_[x] g), q = qf + qg := by
   classical
   rw [convexHull_eq] at hq
   obtain ⟨κ, t, w, z, hw₀, hw₁, hz, rfl⟩ := hq
@@ -276,10 +278,10 @@ lemma exists_add_decomp {q : G → ℂ} (hq : q ∈ convexHull ℝ (translates (
   beta_reduce at hX
   refine ⟨t.centerMass w fun i ↦ τ_[X i] f,
     Finset.centerMass_mem_convexHull t hw₀ (hw₁.symm ▸ zero_lt_one)
-      fun i _ ↦ translate_mem_translates f (X i),
+      fun i _ ↦ Set.mem_range_self (X i),
     t.centerMass w fun i ↦ τ_[X i] g,
     Finset.centerMass_mem_convexHull t hw₀ (hw₁.symm ▸ zero_lt_one)
-      fun i _ ↦ translate_mem_translates g (X i), ?_⟩
+      fun i _ ↦ Set.mem_range_self (X i), ?_⟩
   · simp_rw [Finset.centerMass_eq_of_sum_1 _ _ hw₁]
     rw [← Finset.sum_add_distrib]
     refine Finset.sum_congr rfl fun i hi ↦ ?_
@@ -290,8 +292,8 @@ lemma exists_const_limit {J : Type*} (U : Ultrafilter J) {FJ : J → Finset G}
     (hdef : ∀ g₀ : G,
       Tendsto (fun j ↦ (((g₀ • FJ j) ∆ FJ j).card : ℝ) / (FJ j).card) U (𝓝 0))
     {φ : G → ℂ} {C : ℝ} (hC : ∀ u, ‖φ u‖ ≤ C)
-    {q : J → G → ℂ} (hq : ∀ j, q j ∈ convexHull ℝ (translates φ)) :
-    ∃ z : ℂ, Function.const G z ∈ closure (convexHull ℝ (translates φ)) ∧
+    {q : J → G → ℂ} (hq : ∀ j, q j ∈ convexHull ℝ (Set.range fun x ↦ τ_[x] φ)) :
+    ∃ z : ℂ, Function.const G z ∈ closure (convexHull ℝ (Set.range fun x ↦ τ_[x] φ)) ∧
       Tendsto (fun j ↦ flatten (FJ j) (q j)) (U : Filter J) (𝓝 (Function.const G z)) := by
   have hC₀ : 0 ≤ C := le_trans (norm_nonneg _) (hC 1)
   have hqb : ∀ j, ∀ u, ‖q j u‖ ≤ C := fun j ↦
@@ -310,7 +312,7 @@ lemma exists_const_limit {J : Type*} (U : Ultrafilter J) {FJ : J → Finset G}
   choose zfun _ hztend using hzy
   have htendsto : Tendsto (fun j ↦ flatten (FJ j) (q j)) (U : Filter J) (𝓝 zfun) :=
     tendsto_pi_nhds.2 fun y ↦ hztend y
-  have hmem : zfun ∈ closure (convexHull ℝ (translates φ)) :=
+  have hmem : zfun ∈ closure (convexHull ℝ (Set.range fun x ↦ τ_[x] φ)) :=
     mem_closure_of_tendsto htendsto
       (hne.mono fun j hj ↦ flatten_mem_convexHull_of_mem hj (hq j))
   have hconst : ∀ y y' : G, zfun y = zfun y' := by
@@ -332,12 +334,12 @@ lemma IsMenable.eq_mean_add_of_const_mem [l.NeBot] [MeasurableSpace G] [Measurab
     (hf : IsMenable f) (hg : IsMenable g)
     (hFol : IsFoelner G Measure.count l (fun i ↦ (F i : Set G)))
     (hCf : ∀ u, ‖f u‖ ≤ Cf) (hCg : ∀ u, ‖g u‖ ≤ Cg) {c : ℂ}
-    (hc : Function.const G c ∈ closure (convexHull ℝ (translates (f + g)))) :
+    (hc : Function.const G c ∈ closure (convexHull ℝ (Set.range fun x ↦ τ_[x] (f + g)))) :
     c = hf.mean + hg.mean := by
   classical
   set L : Filter ((ι × Finset G) × ℕ) := (l ×ˢ atTop) ×ˢ atTop with hLdef
   haveI : L.NeBot := by rw [hLdef]; infer_instance
-  have hch : ∀ j : (ι × Finset G) × ℕ, ∃ q ∈ convexHull ℝ (translates (f + g)),
+  have hch : ∀ j : (ι × Finset G) × ℕ, ∃ q ∈ convexHull ℝ (Set.range fun x ↦ τ_[x] (f + g)),
       ∀ y ∈ (F j.1.1)⁻¹ * j.1.2, ‖q y - Function.const G c y‖ < 1 / (j.2 + 1) :=
     fun j ↦ exists_mem_of_mem_closure hc _ (by positivity)
   choose q hqhull hqapp using hch
@@ -409,13 +411,13 @@ lemma IsMenable.const_mean_add_mem [l.NeBot] [MeasurableSpace G] [MeasurableSing
     (hFol : IsFoelner G Measure.count l (fun i ↦ (F i : Set G)))
     (hCf : ∀ u, ‖f u‖ ≤ Cf) (hCg : ∀ u, ‖g u‖ ≤ Cg) :
     Function.const G (hf.mean + hg.mean) ∈
-    closure (convexHull ℝ (translates (f + g))) := by
+    closure (convexHull ℝ (Set.range fun x ↦ τ_[x] (f + g))) := by
   classical
   obtain ⟨U, hU⟩ := Ultrafilter.exists_le l
   obtain ⟨z, hzmem, -⟩ := exists_const_limit U ((nonempty_of_finset hFol).filter_mono hU)
     (fun g₀ ↦ ((tendsto_card_ratio hFol g₀).mono_left hU))
     (fun u ↦ (norm_add_le _ _).trans (add_le_add (hCf u) (hCg u)))
-    (fun _ ↦ subset_convexHull ℝ _ (self_mem_translates (f + g)))
+    (fun _ ↦ subset_convexHull ℝ _ ⟨1, Function.translate_one (f + g)⟩)
   rwa [hf.eq_mean_add_of_const_mem hg hFol hCf hCg hzmem] at hzmem
 
 omit [DecidableEq G] in
@@ -424,7 +426,8 @@ protected theorem IsMenable.add [l.NeBot] [MeasurableSpace G] [MeasurableSinglet
     (hFol : IsFoelner G Measure.count l (fun i ↦ (F i : Set G))) : IsMenable (f + g) :=
   let ⟨Cf, hCf⟩ := hf.exists_norm_le
   let ⟨Cg, hCg⟩ := hg.exists_norm_le
-  ⟨⟨Cf + Cg, fun _ ⟨u, hu⟩ ↦ hu ▸ (norm_add_le _ _).trans (add_le_add (hCf u) (hCg u))⟩,
+  ⟨isBounded_iff_forall_norm_le.2 ⟨Cf + Cg, fun _ ⟨u, hu⟩ ↦
+    hu ▸ (norm_add_le _ _).trans (add_le_add (hCf u) (hCg u))⟩,
     hf.mean + hg.mean, hf.const_mean_add_mem hg hFol hCf hCg,
     fun _ hw ↦ hf.eq_mean_add_of_const_mem hg hFol hCf hCg hw⟩
 

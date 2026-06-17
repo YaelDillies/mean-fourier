@@ -101,9 +101,10 @@ end InvtMean
 variable {G : Type*} [Group G] {f : G → ℂ}
 
 variable (f) in
-abbrev IsMenable : Prop :=
-  BddAbove (Set.range (‖f ·‖)) ∧
-    ∃! z : ℂ, Function.const G z ∈ closure (convexHull ℝ (translates f))
+@[expose]
+def IsMenable : Prop :=
+  IsBddFun f ∧
+    ∃! z : ℂ, Function.const G z ∈ closure (convexHull ℝ (Set.range fun x ↦ τ_[x] f))
 
 namespace IsMenable
 variable {z : ℂ}
@@ -112,11 +113,11 @@ variable (hf : IsMenable f)
 
 noncomputable def mean : ℂ := hf.2.choose
 
-lemma eq_mean (h : Function.const G z ∈ closure (convexHull ℝ (translates f))) :
+lemma eq_mean (h : Function.const G z ∈ closure (convexHull ℝ (Set.range fun x ↦ τ_[x] f))) :
     z = hf.mean := hf.2.choose_spec.2 z h
 
 lemma exists_norm_le (hf : IsMenable f) : ∃ C : ℝ, ∀ u, ‖f u‖ ≤ C :=
-  let ⟨C, hC⟩ := hf.1
-  ⟨C, fun u ↦ hC ⟨u, rfl⟩⟩
+  let ⟨C, hC⟩ := hf.1.exists_norm_le
+  ⟨C, fun u ↦ hC (f u) ⟨u, rfl⟩⟩
 
 end IsMenable
