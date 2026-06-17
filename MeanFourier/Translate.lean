@@ -5,11 +5,8 @@ Authors: Yaël Dillies
 -/
 module
 
-public import Mathlib.Algebra.Group.Basic
 public import Mathlib.Algebra.Group.Pointwise.Set.Basic
 public import Mathlib.Algebra.Group.Units.Equiv
-public import Mathlib.Data.Set.Basic
-public import Mathlib.Util.Notation3
 public import MeanFourier.Mathlib.Topology.Bornology.Basic
 
 /-!
