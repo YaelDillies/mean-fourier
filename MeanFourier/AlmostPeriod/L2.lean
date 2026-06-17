@@ -6,7 +6,6 @@ Authors: Yaël Dillies
 module
 
 public import Mathlib.Combinatorics.Additive.CovBySMul
-public import MeanFourier.AlmostPeriod.Uniform
 public import MeanFourier.InvtMean.Defs
 
 /-!
