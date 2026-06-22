@@ -1,5 +1,6 @@
 module  -- shake: keep-all --deprecated_module: ignore
 
+public import MeanFourier.AlmostConvergent
 public import MeanFourier.AlmostPeriod.L2
 public import MeanFourier.BohrSet.Defs
 public import MeanFourier.BohrSet.Doubling
