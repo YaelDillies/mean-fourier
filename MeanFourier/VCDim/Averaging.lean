@@ -12,9 +12,9 @@ public import MeanFourier.AlmostPeriod.L2
 # The averaging argument
 -/
 
-open scoped Indicator Pointwise symmDiff
+open scoped ComplexOrder Indicator Pointwise symmDiff
 
-variable {G : Type*} [Group G] {m : InvtMean G} {A : Set G} {B : BohrSet G} {ε : ℝ}
+variable {G : Type*} [Group G] {m : InvtMean G ℂ ℂ} {A : Set G} {B : BohrSet G} {ε : ℝ}
 
 public theorem averaging (hA : m.IsMeasSet A) (hB : B.IsRegular)
     (hBA : B.chordSet ⊆ AP_L^2(m)(𝟭_[A], ε / 8)) :

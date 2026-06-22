@@ -14,10 +14,11 @@ public import MeanFourier.InvtMean.Defs
 
 public section
 
-open scoped Indicator Pointwise
+open scoped ComplexOrder Indicator Pointwise
 
 namespace InvtMean
-variable {G : Type*} [Group G] {m : InvtMean G} {f : G → ℂ} {A : Set G} {t : G} {K : ℝ → ℝ} {ε : ℝ}
+variable {G : Type*} [Group G] {m : InvtMean G ℂ ℂ} {f : G → ℂ} {A : Set G} {t : G} {K : ℝ → ℝ}
+  {ε : ℝ}
 
 variable (m f ε) in
 def l2AP : Set G := {t | m.l2Norm ((fun g ↦ f (t⁻¹ * g)) - f) ≤ ε * m.l2Norm f}

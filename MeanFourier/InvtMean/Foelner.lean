@@ -25,7 +25,7 @@ variable {G ι : Type*} [MeasurableSpace G] [Group G]
 
 variable (μ l F) (hF : IsFoelner G μ l F) in
 @[expose]
-noncomputable def foelner : InvtMean G where
+noncomputable def foelner : InvtMean G ℂ ℂ where
   IsMeasFun f := IsBddFun f ∧ ∃ z, Tendsto (fun i ↦ ⨍ x in F i, f x ∂ μ) l (𝓝 z)
   isBddFun_of_isMeasFun f hf := hf.1
   isMeasFun_const z := by

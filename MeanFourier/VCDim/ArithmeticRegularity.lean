@@ -32,7 +32,7 @@ We provide two important corollaries:
 public section
 
 open MeasureTheory InvtMean
-open scoped Indicator Pointwise symmDiff
+open scoped ComplexOrder Indicator Pointwise symmDiff
 
 variable {G ι : Type*} [Group G] {A : Set G} {α ε : ℝ} {d : ℕ}
 
