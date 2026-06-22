@@ -5,8 +5,8 @@ Authors: Yaël Dillies
 -/
 module
 
-public import Mathlib.Algebra.Group.Pointwise.Set.Basic
 public import Mathlib.Algebra.Group.Units.Equiv
+public import Mathlib.Util.Notation3
 public import MeanFourier.Mathlib.Topology.Bornology.Basic
 
 /-!
@@ -54,10 +54,3 @@ variable {G X : Type*} [Group G] [Bornology X] {x : G} {f : G → X}
 protected alias ⟨_, IsBddFun.translate⟩ := isBddFun_translate
 
 end Bornology
-
-open scoped Pointwise
-variable {G α : Type*} [Group G]
-variable {f : G → α}
-
-@[simp] lemma translate_add_right {β : Type*} [Add β] (x : G) (f g : G → β) :
-    τ_[x] (f + g) = τ_[x] f + τ_[x] g := rfl
