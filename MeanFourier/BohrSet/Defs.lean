@@ -45,7 +45,7 @@ def width (B : BohrSet G) (ψ : UnitaryDual ℂ G) : ℝ≥0 := (B.ewidth ψ).to
 
 lemma coe_width (hψ : ψ ∈ B.frequencies) : B.width ψ = B.ewidth ψ := by
   refine ENNReal.coe_toNNReal ?_
-  rwa [←lt_top_iff_ne_top, ←B.mem_frequencies]
+  rwa [← lt_top_iff_ne_top, ← B.mem_frequencies]
 
 lemma ewidth_eq_top_iff : ψ ∉ B.frequencies ↔ B.ewidth ψ = ⊤ := by
   simp [B.mem_frequencies]
@@ -83,11 +83,11 @@ lemma ext_width {B B' : BohrSet G} (freq : B.frequencies = B'.frequencies)
   case ewidth ψ =>
     by_cases hψ : ψ ∈ B.frequencies
     case pos =>
-      rw [←coe_width hψ, width _ hψ, coe_width]
-      rwa [←freq]
+      rw [← coe_width hψ, width _ hψ, coe_width]
+      rwa [← freq]
     case neg =>
       rw [ewidth_eq_top_of_not_mem_frequencies hψ, ewidth_eq_top_of_not_mem_frequencies]
-      rwa [←freq]
+      rwa [← freq]
 
 /-! ### Coercion, membership -/
 
@@ -203,7 +203,7 @@ lemma le_iff_width {B₁ B₂ : BohrSet G} :
     by_cases ψ ∈ B₂.frequencies
     case neg h' => simp [ewidth_eq_top_of_not_mem_frequencies h']
     case pos h' =>
-      rw [←coe_width h', ←coe_width (h₁ h'), ENNReal.coe_le_coe]
+      rw [← coe_width h', ← coe_width (h₁ h'), ENNReal.coe_le_coe]
       exact h₂ h'
 
 @[gcongr]
@@ -302,7 +302,7 @@ noncomputable instance instSMul : SMul ℝ (BohrSet G) where
         simp only [lt_top_iff_ne_top, ite_ne_right_iff, iff_self_and]
         intro hψ
         refine ENNReal.mul_ne_top (by simp) ?_
-        rwa [←lt_top_iff_ne_top, ←mem_frequencies]
+        rwa [← lt_top_iff_ne_top, ← mem_frequencies]
 
 @[simp] lemma frequencies_smul (ρ : ℝ) (B : BohrSet G) : (ρ • B).frequencies = B.frequencies := rfl
 @[simp] lemma cardRank_smul (ρ : ℝ) (B : BohrSet G) : (ρ • B).cardRank = B.cardRank := by rfl
