@@ -7,9 +7,9 @@ module
 
 public import AddCombi.Mathlib.Algebra.Notation.Indicator
 public import Mathlib.Analysis.Complex.Basic
-public import MeanFourier.Translate
 public import MeanFourier.Mathlib.Analysis.Normed.Group.Pointwise
 public import MeanFourier.Mathlib.Analysis.Normed.Module.Ball.Pointwise
+public import MeanFourier.Translate
 
 /-!
 # Invariant means
@@ -96,5 +96,3 @@ variable (m A) in
 @[expose] def IsMeasSet : Prop := m.IsMeasFun 𝟭_[A]
 
 end InvtMean
-
-
