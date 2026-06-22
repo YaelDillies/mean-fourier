@@ -25,11 +25,12 @@ variable {G : Type*} [Group G]
 variable (G) in
 structure InvtMean where
   IsMeasFun : (G → ℂ) → Prop
-  isMeasFun_const (z : ℂ) : IsMeasFun fun _ ↦ z
-  isMeasFun_add (f : G → ℂ) (hf : IsMeasFun f) (g : G → ℂ) (hg : IsMeasFun g) : IsMeasFun (f + g)
-  isMeasFun_smul (z : ℂ) (f : G → ℂ) (hf : IsMeasFun f) : IsMeasFun (z • f)
-  isMeasFun_translate (x : G) (f : G → ℂ) (hf : IsMeasFun f) : IsMeasFun (τ_[x] f)
-  isBddFun_of_isMeasFun (f : G → ℂ) (hf : IsMeasFun f) : IsBddFun f
+  isMeasFun_const (z : ℂ) : IsMeasFun fun _ ↦ z := by fun_prop
+  isMeasFun_add (f : G → ℂ) (hf : IsMeasFun f) (g : G → ℂ) (hg : IsMeasFun g) :
+    IsMeasFun (f + g) := by fun_prop
+  isMeasFun_smul (z : ℂ) (f : G → ℂ) (hf : IsMeasFun f) : IsMeasFun (z • f) := by fun_prop
+  isMeasFun_translate (x : G) (f : G → ℂ) (hf : IsMeasFun f) : IsMeasFun (τ_[x] f) := by fun_prop
+  isBddFun_of_isMeasFun (f : G → ℂ) (hf : IsMeasFun f) : IsBddFun f := by fun_prop
   toFun : (G → ℂ) → ℂ
   map_zero : toFun 0 = 0
   map_add (f : G → ℂ) (hf : IsMeasFun f) (g : G → ℂ) (hg : IsMeasFun g) :
