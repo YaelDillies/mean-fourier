@@ -26,6 +26,7 @@ namespace InvtMean
 variable {G 𝕜 E : Type*} [Group G] [RCLike 𝕜] [NormedAddCommGroup E] [PartialOrder E]
   [NormedSpace 𝕜 E] [NormedSpace ℝ E]
 
+variable (𝕜) in
 /-- The von Neumann mean -/
 @[expose, simps]
 noncomputable def vn : InvtMean G 𝕜 E where
