@@ -9,6 +9,7 @@ public import Mathlib.Algebra.Group.Pointwise.Finset.Scalar
 public import Mathlib.Analysis.SpecificLimits.Basic
 public import Mathlib.Topology.Instances.ENNReal.Lemmas
 public import MeanFourier.InvtMean.Defs
+public import MeanFourier.AlmostConvergent
 public import Mathlib.Algebra.BigOperators.Expect
 public import MeanFourier.Mathlib.MeasureTheory.Group.FoelnerFilter
 public import MeanFourier.Mathlib.MeasureTheory.Integral.Average
@@ -285,7 +286,7 @@ lemma exists_add_decomp {q : G → ℂ}
   · simp_rw [Finset.centerMass_eq_of_sum_1 _ _ hw₁]
     rw [← Finset.sum_add_distrib]
     refine Finset.sum_congr rfl fun i hi ↦ ?_
-    · rw [← smul_add, ← translate_add_right, hX i hi]
+    · rw [← smul_add, ← Function.translate_add_fun, hX i hi]
 
 lemma exists_const_limit {J : Type*} (U : Ultrafilter J) {FJ : J → Finset G}
     (hne : ∀ᶠ j in (U : Filter J), (FJ j).Nonempty)
@@ -330,8 +331,9 @@ lemma exists_const_limit {J : Type*} (U : Ultrafilter J) {FJ : J → Finset G}
   grind
 
 omit [DecidableEq G] in
-lemma IsMenable.eq_mean_add_of_const_mem [l.NeBot] [MeasurableSpace G] [MeasurableSingletonClass G]
-    (hf : IsMenable f) (hg : IsMenable g)
+lemma IsAlmostConvergent.eq_mean_add_of_const_mem [l.NeBot] [MeasurableSpace G]
+    [MeasurableSingletonClass G]
+    (hf : IsAlmostConvergent f) (hg : IsAlmostConvergent g)
     (hFol : IsFoelner G Measure.count l (fun i ↦ (F i : Set G)))
     (hCf : ∀ u, ‖f u‖ ≤ Cf) (hCg : ∀ u, ‖g u‖ ≤ Cg) {c : ℂ}
     (hc : Function.const G c ∈ closure (convexHull ℝ (Set.range fun x ↦ τ_[x] (f + g)))) :
@@ -406,8 +408,9 @@ lemma IsMenable.eq_mean_add_of_const_mem [l.NeBot] [MeasurableSpace G] [Measurab
   simp_all
 
 omit [DecidableEq G] in
-lemma IsMenable.const_mean_add_mem [l.NeBot] [MeasurableSpace G] [MeasurableSingletonClass G]
-    (hf : IsMenable f) (hg : IsMenable g)
+lemma IsAlmostConvergent.const_mean_add_mem [l.NeBot] [MeasurableSpace G]
+    [MeasurableSingletonClass G]
+    (hf : IsAlmostConvergent f) (hg : IsAlmostConvergent g)
     (hFol : IsFoelner G Measure.count l (fun i ↦ (F i : Set G)))
     (hCf : ∀ u, ‖f u‖ ≤ Cf) (hCg : ∀ u, ‖g u‖ ≤ Cg) :
     Function.const G (hf.mean + hg.mean) ∈
@@ -421,19 +424,21 @@ lemma IsMenable.const_mean_add_mem [l.NeBot] [MeasurableSpace G] [MeasurableSing
   rwa [hf.eq_mean_add_of_const_mem hg hFol hCf hCg hzmem] at hzmem
 
 omit [DecidableEq G] in
-protected theorem IsMenable.add [l.NeBot] [MeasurableSpace G] [MeasurableSingletonClass G]
-    (hf : IsMenable f) (hg : IsMenable g)
-    (hFol : IsFoelner G Measure.count l (fun i ↦ (F i : Set G))) : IsMenable (f + g) :=
+protected theorem IsAlmostConvergent.add [l.NeBot] [MeasurableSpace G]
+    [MeasurableSingletonClass G]
+    (hf : IsAlmostConvergent f) (hg : IsAlmostConvergent g)
+    (hFol : IsFoelner G Measure.count l (fun i ↦ (F i : Set G))) : IsAlmostConvergent (f + g) :=
   let ⟨Cf, hCf⟩ := hf.exists_norm_le
   let ⟨Cg, hCg⟩ := hg.exists_norm_le
   ⟨isBounded_iff_forall_norm_le.2 ⟨Cf + Cg, fun _ ⟨u, hu⟩ ↦
     hu ▸ (norm_add_le _ _).trans (add_le_add (hCf u) (hCg u))⟩,
-    hf.mean + hg.mean, hf.const_mean_add_mem hg hFol hCf hCg,
-    fun _ hw ↦ hf.eq_mean_add_of_const_mem hg hFol hCf hCg hw⟩
+    ⟨hf.mean + hg.mean, hf.const_mean_add_mem hg hFol hCf hCg,
+     fun _ hw ↦ hf.eq_mean_add_of_const_mem hg hFol hCf hCg hw⟩⟩
 
 omit [DecidableEq G] in
-theorem IsMenable.mean_add [l.NeBot] [MeasurableSpace G] [MeasurableSingletonClass G]
-    (hf : IsMenable f) (hg : IsMenable g)
+theorem IsAlmostConvergent.mean_add [l.NeBot] [MeasurableSpace G]
+    [MeasurableSingletonClass G]
+    (hf : IsAlmostConvergent f) (hg : IsAlmostConvergent g)
     (hFol : IsFoelner G Measure.count l (fun i ↦ (F i : Set G))) :
     (hf.add hg hFol).mean = hf.mean + hg.mean :=
   let ⟨_, hCf⟩ := hf.exists_norm_le
