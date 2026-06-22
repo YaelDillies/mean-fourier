@@ -126,7 +126,7 @@ protected lemma IsUAP.isAlmostConvergent [NormedSpace ℝ E] (hf : IsUAP f) :
     IsAlmostConvergent f := by
   sorry
 
-open scoped Pointwise InnerProductSpace in
+open scoped Pointwise InnerProductSpace Finset in
 theorem UnitaryRepresentation.isUAP_inner {E : Type*} [NormedAddCommGroup E]
     [InnerProductSpace ℂ E] [FiniteDimensional ℂ E]
     (ρ : UnitaryRepresentation ℂ G E) (v w : E) :
@@ -154,16 +154,22 @@ theorem UnitaryRepresentation.isUAP_inner {E : Type*} [NormedAddCommGroup E]
   refine ⟨tc y, Finset.mem_image_of_mem _ (hcfin.mem_toFinset.2 hy), (tc y)⁻¹ * x, ?_, ?_⟩
   · rw [mem_uniformAP]
     intro z
-    have hkey : ∀ s : G, ⟪ρ (s⁻¹ * z) v, w⟫_ℂ = ⟪ρ z v, ρ s w⟫_ℂ := by
-      intro s
-      have h1 : ρ (s⁻¹ * z) v = (ρ s).symm (ρ z v) := by simp
+    have hkey : ∀ (s : G) (z' : G), ⟪ρ (s⁻¹ * z') v, w⟫_ℂ = ⟪ρ z' v, ρ s w⟫_ℂ := by
+      intro s z'
+      have h1 : ρ (s⁻¹ * z') v = (ρ s).symm (ρ z' v) := by simp
       rw [h1]
-      calc ⟪(ρ s).symm (ρ z v), w⟫_ℂ
-          = ⟪ρ s ((ρ s).symm (ρ z v)), ρ s w⟫_ℂ := ((ρ s).inner_map_map _ _).symm
-        _ = ⟪ρ z v, ρ s w⟫_ℂ := by simp
-    have h1 : ((tc y)⁻¹ * x)⁻¹ * z = x⁻¹ * (tc y * z) := by group
-    have h2 : z = (tc y)⁻¹ * (tc y * z) := by group
-    rw [h1, h2, hkey x, hkey (tc y), ← inner_sub_right]
+      calc ⟪(ρ s).symm (ρ z' v), w⟫_ℂ
+          = ⟪ρ s ((ρ s).symm (ρ z' v)), ρ s w⟫_ℂ := ((ρ s).inner_map_map _ _).symm
+        _ = ⟪ρ z' v, ρ s w⟫_ℂ := by simp
+    have h1 : ⟪ρ (((tc y)⁻¹ * x)⁻¹ * z) v, w⟫_ℂ = ⟪ρ (tc y * z) v, ρ x w⟫_ℂ := by
+      rw [← hkey x (tc y * z)]
+      have : ((tc y)⁻¹ * x)⁻¹ * z = x⁻¹ * (tc y * z) := by group
+      rw [this]
+    have h2 : ⟪ρ z v, w⟫_ℂ = ⟪ρ (tc y * z) v, ρ (tc y) w⟫_ℂ := by
+      rw [← hkey (tc y) (tc y * z)]
+      have : (tc y)⁻¹ * (tc y * z) = z := by group
+      rw [this]
+    rw [h1, h2, ← inner_sub_right]
     calc ‖⟪ρ (tc y * z) v, ρ x w - ρ (tc y) w⟫_ℂ‖
         ≤ ‖ρ (tc y * z) v‖ * ‖ρ x w - ρ (tc y) w‖ := norm_inner_le_norm _ _
       _ = ‖v‖ * ‖ρ x w - ρ (tc y) w‖ := by simp
