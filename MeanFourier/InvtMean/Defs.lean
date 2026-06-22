@@ -42,7 +42,7 @@ structure InvtMean where
 
 namespace InvtMean
 section NormedAddCommGroup
-variable {m : InvtMean G 𝕜 E} {f g : G → E} {A : Set G} {x : G} {z : E}
+variable {m : InvtMean G 𝕜 E} {f g : G → E} {A : Set G} {x : G} {c : 𝕜} {z : E}
 
 instance : CoeFun (InvtMean G 𝕜 E) fun _ ↦ (G → E) → E where coe := toFun
 
@@ -50,16 +50,29 @@ initialize_simps_projections InvtMean (toFun → apply, as_prefix IsMeasFun)
 
 attribute [fun_prop] IsMeasFun
 
-@[fun_prop, simp] lemma IsMeasFun.const : m.IsMeasFun fun _ ↦ z := m.isMeasFun_const _
+@[to_fun (attr := fun_prop, simp)]
+lemma IsMeasFun.const : m.IsMeasFun (Function.const G z) := m.isMeasFun_const _
 
 @[fun_prop, simp] protected lemma IsMeasFun.zero : m.IsMeasFun 0 := .const
 
-@[fun_prop]
+@[to_fun (attr := fun_prop)]
 protected lemma IsMeasFun.add (hf : m.IsMeasFun f) (hg : m.IsMeasFun g) : m.IsMeasFun (f + g) :=
   m.isMeasFun_add _ hf _ hg
 
+@[fun_prop]
+protected lemma IsMeasFun.smul (hf : m.IsMeasFun f) : m.IsMeasFun (c • f) := m.isMeasFun_smul _ _ hf
+
 protected lemma IsMeasFun.translate (hf : m.IsMeasFun f) : m.IsMeasFun (τ_[x] f) :=
   m.isMeasFun_translate _ _ hf
+
+@[to_fun (attr := fun_prop)]
+protected lemma IsMeasFun.neg (hf : m.IsMeasFun f) : m.IsMeasFun (-f) := by
+  simpa using hf.smul (c := -1)
+
+@[to_fun (attr := simp)]
+lemma isMeasFun_neg : m.IsMeasFun (-f) ↔ m.IsMeasFun f where
+  mp hf := by simpa using hf.neg
+  mpr := .neg
 
 @[fun_prop]
 lemma IsMeasFun.isBddFun (hf : m.IsMeasFun f) : IsBddFun f := m.isBddFun_of_isMeasFun _ hf
