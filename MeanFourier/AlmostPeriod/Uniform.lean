@@ -62,13 +62,8 @@ protected lemma IsUAPWith.const : IsUAPWith 1 (Function.const G z) := by
 @[simp, fun_prop]
 protected lemma IsUAPWith.zero : IsUAPWith 1 (0 : G → E) := .const
 
-@[to_fun (attr := fun_prop)]
-protected lemma IsUAPWith.add (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
-    IsUAPWith (K + L) (f + g) := by
-  rintro ε hε
-  have := hf (ε := ε / 2) (by positivity)
-  have := hg (ε := ε / 2) (by positivity)
-  sorry -- TODO: What is the right bound?
+proof_wanted IsUAPWith.add :
+    ∃ M, ∀ f : G → E, IsUAPWith K f → ∀ g, IsUAPWith L g → IsUAPWith M (f + g)
 
 @[to_fun]
 protected lemma IsUAPWith.smul (hf : IsUAPWith K f) (hc : c ≠ 0) :
@@ -101,9 +96,7 @@ protected lemma IsUAP.const : IsUAP (Function.const G z) := fun ε hε ↦ ⟨1,
 
 @[to_fun (attr := fun_prop)]
 protected lemma IsUAP.add (hf : IsUAP f) (hg : IsUAP g) : IsUAP (f + g) := by
-  obtain ⟨K, hf⟩ := hf.exists_isUAPWith
-  obtain ⟨L, hg⟩ := hg.exists_isUAPWith
-  exact (hf.add hg).isUAP
+  sorry
 
 @[to_fun (attr := fun_prop)]
 protected lemma IsUAP.smul (hf : IsUAP f) : IsUAP (c • f) := by
