@@ -57,8 +57,7 @@ lemma univ_inter {A B : Set G} {K' L' : ℝ}
   classical
   obtain ⟨F₁, hF₁card, hF₁⟩ := hA
   obtain ⟨F₂, hF₂card, hF₂⟩ := hB
-  have hcoord (x : G) :
-      ∃ p : G × G, p.1 ∈ F₁ ∧ p.2 ∈ F₂ ∧ p.1⁻¹ * x ∈ A ∧ p.2⁻¹ * x ∈ B := by
+  have (x : G) : ∃ p : G × G, p.1 ∈ F₁ ∧ p.2 ∈ F₂ ∧ p.1⁻¹ * x ∈ A ∧ p.2⁻¹ * x ∈ B := by
     obtain ⟨s, hs, a, ha, hsa⟩ := hF₁ (Set.mem_univ x)
     obtain ⟨u, hu, b, hb, hub⟩ := hF₂ (Set.mem_univ x)
     dsimp only at hsa hub
@@ -68,10 +67,9 @@ lemma univ_inter {A B : Set G} {K' L' : ℝ}
     have hA' : s⁻¹ * x ∈ A := by grind
     have hB' : u⁻¹ * x ∈ B := by grind
     exact ⟨(s, u), hs, hu, hA', hB'⟩
-  choose pair hp1 hp2 hpA hpB using hcoord
+  choose pair hp1 hp2 hpA hpB using this
   let rep := fun p ↦ if h : ∃ y, pair y = p then h.choose else 1
-  have : ∀ x, pair (rep (pair x)) = pair x := by
-    intro x
+  have (x : G) : pair (rep (pair x)) = pair x := by
     have : ∃ y, pair y = pair x := ⟨x, by rfl⟩
     grind
   refine ⟨(F₁ ×ˢ F₂).image rep, ?_, ?_⟩

@@ -81,13 +81,11 @@ lemma uniformAP_mul_uniformAP_subset {δ : ℝ} : AP∞(f, ε) * AP∞(f, δ) �
   intro _ ⟨_, _, _, _, _⟩
   grind [mul_mem_uniformAP]
 
-lemma uniformAP_pow_subset (n : ℕ) : AP∞(f, ε) ^ n ⊆ AP∞(f, n * ε) := by
-  induction n with
-  | zero => simp [mem_uniformAP]
-  | succ n ih =>
-    have : (↑(n + 1) : ℝ) * ε = ↑n * ε + ε := by grind
-    rw [this]
-    exact (Set.mul_subset_mul_right ih).trans uniformAP_mul_uniformAP_subset
+lemma uniformAP_pow_subset : ∀ n : ℕ, AP∞(f, ε) ^ n ⊆ AP∞(f, n * ε)
+  | 0 => by simp [mem_uniformAP]
+  | n + 1 => by
+    grw [pow_succ, uniformAP_pow_subset, uniformAP_mul_uniformAP_subset]
+    grind [uniformAP]
 
 lemma inter_subset_uniformAP_add {δ : ℝ} :
     AP∞(f, ε) ∩ AP∞(g, δ) ⊆ AP∞(f + g, ε + δ) := by
