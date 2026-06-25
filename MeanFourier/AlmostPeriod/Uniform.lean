@@ -93,12 +93,10 @@ lemma inter_subset_uniformAP_add {δ : ℝ} :
     AP∞(f, ε) ∩ AP∞(g, δ) ⊆ AP∞(f + g, ε + δ) := by
   intro t ht
   obtain ⟨htf, htg⟩ := ht
-  rw [mem_uniformAP]
   intro x
-  simp only [Pi.add_apply]
-  have h1 : f (t⁻¹ * x) + g (t⁻¹ * x) - (f x + g x)
+  have : f (t⁻¹ * x) + g (t⁻¹ * x) - (f x + g x)
       = (f (t⁻¹ * x) - f x) + (g (t⁻¹ * x) - g x) := by grind
-  grind [norm_add_le, htf x, htg x]
+  grind [Pi.add_apply, norm_add_le, htf x, htg x]
 
 protected lemma IsUAPWith.add (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
     IsUAPWith (fun ε ↦ K (ε / 4) * L (ε / 4)) (f + g) := by
