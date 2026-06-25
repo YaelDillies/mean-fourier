@@ -65,7 +65,7 @@ protected lemma IsUAPWith.const : IsUAPWith 1 (Function.const G z) := by
 protected lemma IsUAPWith.zero : IsUAPWith 1 (0 : G → E) := .const
 
 @[simp]
-lemma uniformAP_inv : (AP∞(f, ε))⁻¹ = AP∞(f, ε) := by
+lemma uniformAP_inv : AP∞(f, ε)⁻¹ = AP∞(f, ε) := by
   ext t
   exact (Equiv.mulLeft t).forall_congr (by simp [norm_sub_rev])
 
@@ -100,7 +100,7 @@ protected lemma IsUAPWith.add (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
     IsUAPWith (fun ε ↦ K (ε / 4) * L (ε / 4)) (f + g) := by
   rintro ε hε
   have hε4 : (0 : ℝ) < ε / 4 := by linarith
-  refine (CovBySMul.univ_inter (hf hε4) (hg hε4)).subset_right ?_
+  refine (CovBySMul.inter (hf hε4) (hg hε4)).subset_right ?_
   calc
     (AP∞(f, ε / 4))⁻¹ * AP∞(f, ε / 4) ∩ ((AP∞(g, ε / 4))⁻¹ * AP∞(g, ε / 4))
         ⊆ AP∞(f, ε / 2) ∩ AP∞(g, ε / 2) := by
@@ -110,8 +110,8 @@ protected lemma IsUAPWith.add (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
         rw [← hhalf]
         exact uniformAP_mul_uniformAP_subset
     _ ⊆ AP∞(f + g, ε) := by
-      have := inter_subset_uniformAP_add (f := f) (g := g) (ε := ε / 2) (δ := ε / 2)
-      simp_all
+      convert inter_subset_uniformAP_add (ε := ε / 2) (δ := ε / 2)
+      ring
 
 @[to_fun]
 protected lemma IsUAPWith.smul (hf : IsUAPWith K f) (hc : c ≠ 0) :
