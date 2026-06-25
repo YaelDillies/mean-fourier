@@ -4,6 +4,7 @@ public import Mathlib.Algebra.BigOperators.Group.Finset.Defs
 public import Mathlib.Combinatorics.Additive.CovBySMul
 
 import Mathlib.Algebra.Order.BigOperators.Ring.Finset
+import Mathlib.Tactic.Group
 import MeanFourier.Mathlib.Data.Fintype.BigOperators
 
 open scoped Finset Pointwise
@@ -48,5 +49,60 @@ lemma pi {ι : Type*} {G X : ι → Type*} {s : Finset ι} [∀ i, Group (G i)]
   choose! g hg y hy hgy using fun i hi ↦ hFS i hi <| hx _ hi
   exact ⟨fun i ↦ if i ∈ s then g i else 1, by simp_all [apply_ite],
     fun i ↦ if i ∈ s then y i else x i, by simp_all, by ext; dsimp; split <;> simp_all⟩
+
+@[to_additive]
+lemma univ_inter {A B : Set G} {K' L' : ℝ}
+    (hA : CovBySMul G K' .univ A) (hB : CovBySMul G L' .univ B) :
+    CovBySMul G (K' * L') .univ (A⁻¹ * A ∩ (B⁻¹ * B)) := by
+  classical
+  obtain ⟨F₁, hF₁card, hF₁⟩ := hA
+  obtain ⟨F₂, hF₂card, hF₂⟩ := hB
+  have hcoord : ∀ x : G, ∃ p : G × G,
+      p.1 ∈ F₁ ∧ p.2 ∈ F₂ ∧ p.1⁻¹ * x ∈ A ∧ p.2⁻¹ * x ∈ B := by
+    intro x
+    obtain ⟨s, hs, a, ha, hsa⟩ := Set.mem_smul.1 (hF₁ (Set.mem_univ x))
+    obtain ⟨u, hu, b, hb, hub⟩ := Set.mem_smul.1 (hF₂ (Set.mem_univ x))
+    rw [smul_eq_mul] at hsa hub
+    have hsx : s⁻¹ * x = a := by rw [← hsa]; group
+    have hux : u⁻¹ * x = b := by rw [← hub]; group
+    have hA' : s⁻¹ * x ∈ A := by rwa [hsx]
+    have hB' : u⁻¹ * x ∈ B := by rwa [hux]
+    exact ⟨(s, u), hs, hu, hA', hB'⟩
+  choose pair hp1 hp2 hpA hpB using hcoord
+  let rep := fun p ↦ if h : ∃ y, pair y = p then h.choose else 1
+  have : ∀ x, pair (rep (pair x)) = pair x := by
+    intro x
+    dsimp [rep]
+    have hx : ∃ y, pair y = pair x := ⟨x, _root_.rfl⟩
+    rw [dif_pos hx]
+    exact Exists.choose_spec hx
+  refine ⟨(F₁ ×ˢ F₂).image rep, ?_, ?_⟩
+  · have : (0 : ℝ) ≤ K' := le_trans (by positivity) hF₁card
+    calc (((F₁ ×ˢ F₂).image rep).card : ℝ)
+        ≤ ((F₁ ×ˢ F₂).card : ℝ) := by exact_mod_cast Finset.card_image_le
+      _ = (F₁.card : ℝ) * (F₂.card : ℝ) := by simp
+      _ ≤ K' * L' := mul_le_mul hF₁card hF₂card (by positivity) this
+  · intro x _
+    let r := rep (pair x)
+    refine Set.mem_smul.2 ⟨r, ?_, r⁻¹ * x, ?_, by simp⟩
+    · rw [Finset.mem_coe]
+      exact Finset.mem_image.2 ⟨pair x, Finset.mem_product.2 ⟨hp1 x, hp2 x⟩, _root_.rfl⟩
+    · refine ⟨?_, ?_⟩
+      · rw [Set.mem_mul]
+        refine ⟨((pair x).1⁻¹ * r)⁻¹, ?_, (pair x).1⁻¹ * x, hpA x, by group⟩
+        rw [Set.mem_inv, inv_inv]
+        have hx : ∃ y, pair y = pair x := ⟨x, _root_.rfl⟩
+        have hrep : pair (rep (pair x)) = pair x := by
+          dsimp [rep]; rw [dif_pos hx]; exact Exists.choose_spec hx
+        have := hpA (rep (pair x))
+        rwa [hrep] at this
+      · rw [Set.mem_mul]
+        refine ⟨((pair x).2⁻¹ * r)⁻¹, ?_, (pair x).2⁻¹ * x, hpB x, by group⟩
+        rw [Set.mem_inv, inv_inv]
+        have hx : ∃ y, pair y = pair x := ⟨x, _root_.rfl⟩
+        have hrep : pair (rep (pair x)) = pair x := by
+          dsimp [rep]; rw [dif_pos hx]; exact Exists.choose_spec hx
+        have := hpB (rep (pair x))
+        rwa [hrep] at this
 
 end CovBySMul
