@@ -72,7 +72,7 @@ lemma univ_inter {A B : Set G} {K' L' : ℝ}
   let rep := fun p ↦ if h : ∃ y, pair y = p then h.choose else 1
   have : ∀ x, pair (rep (pair x)) = pair x := by
     intro x
-    have : ∃ y, pair y = pair x := ⟨x, _root_.rfl⟩
+    have : ∃ y, pair y = pair x := ⟨x, by rfl⟩
     grind
   refine ⟨(F₁ ×ˢ F₂).image rep, ?_, ?_⟩
   · have : 0 ≤ K' := le_trans (by grind) hF₁card
@@ -83,7 +83,7 @@ lemma univ_inter {A B : Set G} {K' L' : ℝ}
   · intro x _
     let r := rep (pair x)
     refine Set.mem_smul.2 ⟨r, ?_, r⁻¹ * x, ?_, by simp⟩
-    · exact Finset.mem_image.2 ⟨pair x, Finset.mem_product.2 ⟨hp1 x, hp2 x⟩, _root_.rfl⟩
+    · exact Finset.mem_image.2 ⟨pair x, Finset.mem_product.2 ⟨hp1 x, hp2 x⟩, by rfl⟩
     · exact ⟨
         ⟨((pair x).1⁻¹ * r)⁻¹, by grind [Set.mem_inv, inv_inv], (pair x).1⁻¹ * x, hpA x, by group⟩,
         ⟨((pair x).2⁻¹ * r)⁻¹, by grind [Set.mem_inv, inv_inv], (pair x).2⁻¹ * x, hpB x, by group⟩
