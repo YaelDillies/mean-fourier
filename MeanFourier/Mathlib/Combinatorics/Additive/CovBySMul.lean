@@ -72,37 +72,21 @@ lemma univ_inter {A B : Set G} {K' L' : ℝ}
   let rep := fun p ↦ if h : ∃ y, pair y = p then h.choose else 1
   have : ∀ x, pair (rep (pair x)) = pair x := by
     intro x
-    dsimp [rep]
-    have hx : ∃ y, pair y = pair x := ⟨x, _root_.rfl⟩
-    rw [dif_pos hx]
-    exact Exists.choose_spec hx
+    have : ∃ y, pair y = pair x := ⟨x, _root_.rfl⟩
+    grind
   refine ⟨(F₁ ×ˢ F₂).image rep, ?_, ?_⟩
-  · have : (0 : ℝ) ≤ K' := le_trans (by positivity) hF₁card
+  · have : 0 ≤ K' := le_trans (by grind) hF₁card
     calc (((F₁ ×ˢ F₂).image rep).card : ℝ)
-        ≤ ((F₁ ×ˢ F₂).card : ℝ) := by exact_mod_cast Finset.card_image_le
-      _ = (F₁.card : ℝ) * (F₂.card : ℝ) := by simp
-      _ ≤ K' * L' := mul_le_mul hF₁card hF₂card (by positivity) this
+        ≤ (F₁ ×ˢ F₂).card := by exact_mod_cast Finset.card_image_le
+      _ = F₁.card * F₂.card := by simp
+      _ ≤ K' * L' := mul_le_mul hF₁card hF₂card (by grind) this
   · intro x _
     let r := rep (pair x)
     refine Set.mem_smul.2 ⟨r, ?_, r⁻¹ * x, ?_, by simp⟩
-    · rw [Finset.mem_coe]
-      exact Finset.mem_image.2 ⟨pair x, Finset.mem_product.2 ⟨hp1 x, hp2 x⟩, _root_.rfl⟩
-    · refine ⟨?_, ?_⟩
-      · rw [Set.mem_mul]
-        refine ⟨((pair x).1⁻¹ * r)⁻¹, ?_, (pair x).1⁻¹ * x, hpA x, by group⟩
-        rw [Set.mem_inv, inv_inv]
-        have hx : ∃ y, pair y = pair x := ⟨x, _root_.rfl⟩
-        have hrep : pair (rep (pair x)) = pair x := by
-          dsimp [rep]; rw [dif_pos hx]; exact Exists.choose_spec hx
-        have := hpA (rep (pair x))
-        rwa [hrep] at this
-      · rw [Set.mem_mul]
-        refine ⟨((pair x).2⁻¹ * r)⁻¹, ?_, (pair x).2⁻¹ * x, hpB x, by group⟩
-        rw [Set.mem_inv, inv_inv]
-        have hx : ∃ y, pair y = pair x := ⟨x, _root_.rfl⟩
-        have hrep : pair (rep (pair x)) = pair x := by
-          dsimp [rep]; rw [dif_pos hx]; exact Exists.choose_spec hx
-        have := hpB (rep (pair x))
-        rwa [hrep] at this
+    · exact Finset.mem_image.2 ⟨pair x, Finset.mem_product.2 ⟨hp1 x, hp2 x⟩, _root_.rfl⟩
+    · exact ⟨
+        ⟨((pair x).1⁻¹ * r)⁻¹, by grind [Set.mem_inv, inv_inv], (pair x).1⁻¹ * x, hpA x, by group⟩,
+        ⟨((pair x).2⁻¹ * r)⁻¹, by grind [Set.mem_inv, inv_inv], (pair x).2⁻¹ * x, hpB x, by group⟩
+      ⟩
 
 end CovBySMul
