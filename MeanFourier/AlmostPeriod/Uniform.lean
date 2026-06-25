@@ -67,29 +67,27 @@ protected lemma IsUAPWith.zero : IsUAPWith 1 (0 : G → E) := .const
 @[simp]
 lemma uniformAP_inv : (AP∞(f, ε))⁻¹ = AP∞(f, ε) := by
   ext t
-  refine ⟨fun ht x ↦ ?_, fun ht x ↦ ?_⟩
-  · specialize ht (t⁻¹ * x)
-    simpa [norm_sub_rev] using ht
-  · specialize ht (t * x)
-    simpa [norm_sub_rev] using ht
+  exact (Equiv.mulLeft t).forall_congr (by simp [norm_sub_rev])
 
-lemma uniformAP_mul {a b : G} {δ : ℝ} (ha : a ∈ AP∞(f, ε)) (hb : b ∈ AP∞(f, δ)) :
+lemma mul_mem_uniformAP {a b : G} {δ : ℝ} (ha : a ∈ AP∞(f, ε)) (hb : b ∈ AP∞(f, δ)) :
     a * b ∈ AP∞(f, ε + δ) := by
-  rw [mem_uniformAP] at ha hb ⊢
+  rw [mem_uniformAP] at ha hb
   intro x
   have : f ((a * b)⁻¹ * x) - f x
-      = (f (b⁻¹ * (a⁻¹ * x)) - f (a⁻¹ * x)) + (f (a⁻¹ * x) - f x) := by
-    grind [mul_inv_rev]
-  grind [mul_inv_rev, norm_add_le]
+      = (f (b⁻¹ * (a⁻¹ * x)) - f (a⁻¹ * x)) + (f (a⁻¹ * x) - f x) := by grind [mul_inv_rev]
+  grind [norm_add_le]
 
 lemma uniformAP_mul_uniformAP_subset {δ : ℝ} : AP∞(f, ε) * AP∞(f, δ) ⊆ AP∞(f, ε + δ) := by
   intro _ ⟨_, _, _, _, _⟩
-  grind [uniformAP_mul]
+  grind [mul_mem_uniformAP]
 
-lemma uniformAP_pow_subset (n : ℕ) : AP∞(f, ε) ^ n ⊆ AP∞(f, n • ε) := by
+lemma uniformAP_pow_subset (n : ℕ) : AP∞(f, ε) ^ n ⊆ AP∞(f, n * ε) := by
   induction n with
   | zero => simp [mem_uniformAP]
-  | succ _ ih => exact (Set.mul_subset_mul_right ih).trans uniformAP_mul_uniformAP_subset
+  | succ n ih =>
+    have : (↑(n + 1) : ℝ) * ε = ↑n * ε + ε := by grind
+    rw [this]
+    exact (Set.mul_subset_mul_right ih).trans uniformAP_mul_uniformAP_subset
 
 lemma inter_subset_uniformAP_add {δ : ℝ} :
     AP∞(f, ε) ∩ AP∞(g, δ) ⊆ AP∞(f + g, ε + δ) := by
@@ -100,9 +98,7 @@ lemma inter_subset_uniformAP_add {δ : ℝ} :
   simp only [Pi.add_apply]
   have h1 : f (t⁻¹ * x) + g (t⁻¹ * x) - (f x + g x)
       = (f (t⁻¹ * x) - f x) + (g (t⁻¹ * x) - g x) := by grind
-  rw [h1]
-  refine (norm_add_le _ _).trans ?_
-  grw [htf x, htg x]
+  grind [norm_add_le, htf x, htg x]
 
 protected lemma IsUAPWith.add (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
     IsUAPWith (fun ε ↦ K (ε / 4) * L (ε / 4)) (f + g) := by
