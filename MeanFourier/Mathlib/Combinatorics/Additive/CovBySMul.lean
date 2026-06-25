@@ -51,40 +51,40 @@ lemma pi {ι : Type*} {G X : ι → Type*} {s : Finset ι} [∀ i, Group (G i)]
     fun i ↦ if i ∈ s then y i else x i, by simp_all, by ext; dsimp; split <;> simp_all⟩
 
 @[to_additive]
-lemma univ_inter {A B : Set G} {K' L' : ℝ}
-    (hA : CovBySMul G K' .univ A) (hB : CovBySMul G L' .univ B) :
-    CovBySMul G (K' * L') .univ (A⁻¹ * A ∩ (B⁻¹ * B)) := by
+lemma inter {A B C : Set G} {K' L' : ℝ}
+    (hA : CovBySMul G K' C A) (hB : CovBySMul G L' C B) :
+    CovBySMul G (K' * L') C (A⁻¹ * A ∩ (B⁻¹ * B)) := by
   classical
   obtain ⟨F₁, hF₁card, hF₁⟩ := hA
   obtain ⟨F₂, hF₂card, hF₂⟩ := hB
-  have (x : G) : ∃ p : G × G, p.1 ∈ F₁ ∧ p.2 ∈ F₂ ∧ p.1⁻¹ * x ∈ A ∧ p.2⁻¹ * x ∈ B := by
-    obtain ⟨s, hs, a, ha, hsa⟩ := hF₁ (Set.mem_univ x)
-    obtain ⟨u, hu, b, hb, hub⟩ := hF₂ (Set.mem_univ x)
-    dsimp only at hsa hub
-    rw [smul_eq_mul] at hsa hub
-    have : s⁻¹ * x = a := by rw [← hsa]; group
-    have : u⁻¹ * x = b := by rw [← hub]; group
-    have hA' : s⁻¹ * x ∈ A := by grind
-    have hB' : u⁻¹ * x ∈ B := by grind
-    exact ⟨(s, u), hs, hu, hA', hB'⟩
-  choose pair hp1 hp2 hpA hpB using this
-  let rep := fun p ↦ if h : ∃ y, pair y = p then h.choose else 1
-  have (x : G) : pair (rep (pair x)) = pair x := by
-    have : ∃ y, pair y = pair x := ⟨x, by rfl⟩
+  have (x : G) : ∃ p : G × G, x ∈ C → p.1 ∈ F₁ ∧ p.2 ∈ F₂ ∧ p.1⁻¹ * x ∈ A ∧ p.2⁻¹ * x ∈ B := by
+    by_cases hx : x ∈ C
+    · obtain ⟨s, hs, a, ha, hsa⟩ := hF₁ hx
+      obtain ⟨u, hu, b, hb, hub⟩ := hF₂ hx
+      exact ⟨(s, u), by grind [smul_eq_mul, inv_mul_cancel_left]⟩
+    · exact ⟨(1, 1), by grind⟩
+  choose pair hp using this
+  let rep := fun p ↦ if h : ∃ y ∈ C, pair y = p then h.choose else 1
+  have (x : G) (hx : x ∈ C) : pair (rep (pair x)) = pair x := by
+    have : ∃ y ∈ C, pair y = pair x := ⟨x, hx, by rfl⟩
     grind
   refine ⟨(F₁ ×ˢ F₂).image rep, ?_, ?_⟩
   · have : 0 ≤ K' := le_trans (by grind) hF₁card
     calc (((F₁ ×ˢ F₂).image rep).card : ℝ)
-        ≤ (F₁ ×ˢ F₂).card := by exact_mod_cast Finset.card_image_le
-      _ = F₁.card * F₂.card := by simp
-      _ ≤ K' * L' := mul_le_mul hF₁card hF₂card (by grind) this
-  · intro x _
+        _ ≤ (F₁ ×ˢ F₂).card := by exact_mod_cast Finset.card_image_le
+        _ = F₁.card * F₂.card := by simp
+        _ ≤ K' * L' := mul_le_mul hF₁card hF₂card (by grind) this
+  · intro x hx
     let r := rep (pair x)
-    refine Set.mem_smul.2 ⟨r, ?_, r⁻¹ * x, ?_, by simp⟩
-    · exact Finset.mem_image.2 ⟨pair x, Finset.mem_product.2 ⟨hp1 x, hp2 x⟩, by rfl⟩
-    · exact ⟨
-        ⟨((pair x).1⁻¹ * r)⁻¹, by grind [Set.mem_inv, inv_inv], (pair x).1⁻¹ * x, hpA x, by group⟩,
-        ⟨((pair x).2⁻¹ * r)⁻¹, by grind [Set.mem_inv, inv_inv], (pair x).2⁻¹ * x, hpB x, by group⟩
-      ⟩
+    refine Set.mem_smul.2 ⟨r, (by grind), r⁻¹ * x, ?_, by simp⟩
+    have : r ∈ C := by
+      dsimp [r, rep]
+      split_ifs <;> grind
+    exact ⟨
+      ⟨((pair x).1⁻¹ * r)⁻¹, by grind [Set.mem_inv, inv_inv], (pair x).1⁻¹ * x,
+        (hp x hx).2.2.1, by group⟩,
+      ⟨((pair x).2⁻¹ * r)⁻¹, by grind [Set.mem_inv, inv_inv], (pair x).2⁻¹ * x,
+        (hp x hx).2.2.2, by group⟩
+    ⟩
 
 end CovBySMul
