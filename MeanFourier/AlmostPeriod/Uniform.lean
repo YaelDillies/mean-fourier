@@ -99,19 +99,11 @@ lemma inter_subset_uniformAP_add {δ : ℝ} :
 protected lemma IsUAPWith.add (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
     IsUAPWith (fun ε ↦ K (ε / 4) * L (ε / 4)) (f + g) := by
   rintro ε hε
-  have hε4 : (0 : ℝ) < ε / 4 := by linarith
-  refine (CovBySMul.inter (hf hε4) (hg hε4)).subset_right ?_
-  calc
-    (AP∞(f, ε / 4))⁻¹ * AP∞(f, ε / 4) ∩ ((AP∞(g, ε / 4))⁻¹ * AP∞(g, ε / 4))
-        ⊆ AP∞(f, ε / 2) ∩ AP∞(g, ε / 2) := by
-      have hhalf : ε / 4 + ε / 4 = ε / 2 := by ring
-      gcongr <;>
-      · rw [uniformAP_inv]
-        rw [← hhalf]
-        exact uniformAP_mul_uniformAP_subset
-    _ ⊆ AP∞(f + g, ε) := by
-      convert inter_subset_uniformAP_add (ε := ε / 2) (δ := ε / 2)
-      ring
+  replace hε : (0 : ℝ) < ε / 4 := by linarith
+  refine ((hf hε).inter (hg hε)).subset_right ?_
+  grw [uniformAP_inv, uniformAP_inv, uniformAP_mul_uniformAP_subset, uniformAP_mul_uniformAP_subset,
+    inter_subset_uniformAP_add]
+  grind
 
 @[to_fun]
 protected lemma IsUAPWith.smul (hf : IsUAPWith K f) (hc : c ≠ 0) :
