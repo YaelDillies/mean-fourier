@@ -25,6 +25,7 @@ public import MeanFourier.Mathlib.Data.ENNReal.BigOperators
 public import MeanFourier.Mathlib.Data.ENNReal.Operations
 public import MeanFourier.Mathlib.Data.ENat.Basic
 public import MeanFourier.Mathlib.Data.ENat.BigOperators
+public import MeanFourier.Mathlib.Data.EReal.Basic
 public import MeanFourier.Mathlib.Data.Finset.Pi
 public import MeanFourier.Mathlib.Data.Fintype.BigOperators
 public import MeanFourier.Mathlib.Data.Fintype.Pi
@@ -41,6 +42,7 @@ public import MeanFourier.Mathlib.Topology.Bornology.Basic
 public import MeanFourier.Mathlib.Topology.MetricSpace.Cover
 public import MeanFourier.Mathlib.Topology.MetricSpace.CoveringNumbers
 public import MeanFourier.Mathlib.Topology.MetricSpace.MetricSeparated
+public import MeanFourier.Mathlib.Topology.MetricSpace.Pseudo.Defs
 public import MeanFourier.Translate
 public import MeanFourier.UnitaryDual
 public import MeanFourier.UnitaryRep

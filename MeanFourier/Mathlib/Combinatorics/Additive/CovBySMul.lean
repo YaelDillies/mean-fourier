@@ -2,24 +2,29 @@ module
 
 public import Mathlib.Algebra.BigOperators.Group.Finset.Defs
 public import Mathlib.Combinatorics.Additive.CovBySMul
+public import Mathlib.Topology.MetricSpace.CoveringNumbers
 
 import Mathlib.Algebra.Order.BigOperators.Ring.Finset
 import Mathlib.Tactic.Group
 import MeanFourier.Mathlib.Data.Fintype.BigOperators
 
-open scoped Finset Pointwise
+open Metric
+open scoped Finset Pointwise NNReal ENNReal
 
 public section
 
-variable {G X : Type*} [Group G] [MulAction G X] {A B : Set X} {K L : ℝ} {m n : ℕ}
+variable {M G X : Type*}
+
 
 namespace CovBySMul
+section Monoid
+variable [Monoid M] [MulAction M X] {A B : Set X} {K L ε : ℝ} {m n : ℕ}
 
 attribute [gcongr] CovBySMul.subset_left CovBySMul.subset_right
 
 @[to_additive]
-lemma prod {H : Type*} [Group H] {A B : Set G} {C D : Set H} (hAB : CovBySMul G K A B)
-    (hCD : CovBySMul H L C D) : CovBySMul (G × H) (K * L) (A ×ˢ C) (B ×ˢ D) := by
+lemma prod {N : Type*} [Group N] {A B : Set M} {C D : Set N} (hAB : CovBySMul M K A B)
+    (hCD : CovBySMul N L C D) : CovBySMul (M × N) (K * L) (A ×ˢ C) (B ×ˢ D) := by
   obtain ⟨F₁, h₁, hAB⟩ := hAB
   obtain ⟨F₂, h₂, hCD⟩ := hCD
   classical
@@ -49,6 +54,18 @@ lemma pi {ι : Type*} {G X : ι → Type*} {s : Finset ι} [∀ i, Group (G i)]
   choose! g hg y hy hgy using fun i hi ↦ hFS i hi <| hx _ hi
   exact ⟨fun i ↦ if i ∈ s then g i else 1, by simp_all [apply_ite],
     fun i ↦ if i ∈ s then y i else x i, by simp_all, by ext; dsimp; split <;> simp_all⟩
+
+variable [PseudoMetricSpace M] [IsIsometricSMul Mᵐᵒᵖ M]
+
+@[simp]
+lemma covBySMul_univ_ball_one :
+    CovBySMul M K .univ (ball (1 : M) ε) ↔
+      (coveringNumber ε.toNNReal (.univ : Set M) : EReal) ≤ K := by
+  sorry
+
+end Monoid
+
+variable [Group G]
 
 @[to_additive]
 lemma inter {A B C : Set G} {K' L' : ℝ} (hA : CovBySMul G K' C A) (hB : CovBySMul G L' C B) :

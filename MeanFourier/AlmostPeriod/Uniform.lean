@@ -6,10 +6,14 @@ Authors: Yaël Dillies
 module
 
 public import Mathlib.Analysis.RCLike.Basic
-public import Mathlib.Combinatorics.Additive.CovBySMul
-public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
-public import MeanFourier.Mathlib.Topology.Bornology.Basic
 public import MeanFourier.AlmostConvergent
+public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
+public import MeanFourier.Mathlib.Data.ENat.Basic
+public import MeanFourier.Mathlib.Data.EReal.Basic
+public import MeanFourier.Mathlib.Data.Real.ENatENNReal
+public import MeanFourier.Mathlib.Topology.Bornology.Basic
+public import MeanFourier.Mathlib.Topology.MetricSpace.CoveringNumbers
+public import MeanFourier.Mathlib.Topology.MetricSpace.Pseudo.Defs
 
 /-!
 # Uniformly almost-periodic functions
@@ -23,10 +27,10 @@ This files defines uniformly almost-periodic functions in a group following von 
 
 public section
 
-open Bornology
+open Bornology Metric
 open scoped Pointwise
 
-variable {𝕜 G E : Type*} [RCLike 𝕜] [Group G] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+variable {𝕜 G K E : Type*} [RCLike 𝕜] [Group G] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
   {K L : ℝ → ℝ} {f g : G → E} {x t : G} {c : 𝕜} {z : E} {ε : ℝ}
 
 variable (f ε) in
@@ -154,6 +158,39 @@ protected lemma IsUAP.translate (hf : IsUAP f) : IsUAP (τ_[x] f) := by
 @[fun_prop]
 protected lemma IsUAP.isBddFun (hf : IsUAP f) : IsBddFun f := by
   sorry
+
+section MetricSpace
+variable [MetricSpace G] [IsIsometricSMul Gᵐᵒᵖ G] {δ : ℝ → ℝ}
+
+lemma ball_one_subset_uniformAP_of_isUniformContinuousWith (hf : IsUniformContinuousWith δ f)
+    (hε : 0 < ε) : ball 1 (δ ε) ⊆ AP∞(f, ε) := by
+  rintro t ht x
+  simp only [← dist_eq_norm, mem_ball'] at ht ⊢
+  refine hf hε ?_
+  convert! ht.le using 1
+  rw [← dist_mul_right _ _ x⁻¹, mul_inv_cancel_right, mul_inv_cancel, ← dist_mul_right _ _ t]
+  simp
+
+variable [CompactSpace G]
+
+@[fun_prop]
+protected lemma Metric.IsUniformContinuousWith.isUAPWith (hδ : ∀ ε > 0, 0 < δ ε)
+    (hf : IsUniformContinuousWith δ f) :
+    IsUAPWith (fun ε ↦ (coveringNumber (δ ε).toNNReal (.univ : Set G)).toNat) f := by
+  rintro ε hε
+  grw [← ball_one_subset_uniformAP_of_isUniformContinuousWith hf hε]
+  simpa using isCompact_univ.totallyBounded.coveringNumber_ne_top <| by simp [*]
+
+@[fun_prop]
+protected lemma UniformContinuous.isUAP (hf : UniformContinuous f) : IsUAP f := by
+  obtain ⟨δ, hδ, hf⟩ := uniformContinuous_iff_exists_isUniformContinuousWith.1 hf
+  exact (hf.isUAPWith hδ).isUAP
+
+@[fun_prop]
+protected lemma Continuous.isUAP (hf : Continuous f) : IsUAP f :=
+  (CompactSpace.uniformContinuous_of_continuous hf).isUAP
+
+end MetricSpace
 
 @[fun_prop]
 protected lemma IsUAP.isAlmostConvergent [NormedSpace ℝ E] (hf : IsUAP f) :

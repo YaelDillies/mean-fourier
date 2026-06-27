@@ -26,6 +26,12 @@ lemma packingNumber_le_iff : packingNumber ε s ≤ n ↔ ∀ P ⊆ s, IsSeparat
 lemma coveringNumber_ne_zero_iff : coveringNumber ε s ≠ 0 ↔ s.Nonempty := by
   simp [Set.nonempty_iff_ne_empty]
 
+-- Nicked from brownian-motion
+lemma _root_.TotallyBounded.coveringNumber_ne_top (hs : TotallyBounded s) {r : ℝ≥0} (hr : r ≠ 0) :
+    coveringNumber r s ≠ ⊤ := by
+  obtain ⟨C, hC_subset, hC_finite, hC_cov⟩ := exists_finite_isCover_of_totallyBounded hr hs
+  exact ne_top_of_le_ne_top (by simpa) (hC_cov.coveringNumber_le_encard hC_subset)
+
 @[simp] lemma one_le_externalCoveringNumber_iff : 1 ≤ externalCoveringNumber ε s ↔ s.Nonempty := by
   simp [Order.one_le_iff_ne_zero, Set.nonempty_iff_ne_empty]
 
