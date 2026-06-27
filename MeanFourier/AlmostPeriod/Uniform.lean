@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.RCLike.Basic
 public import Mathlib.Combinatorics.Additive.CovBySMul
+public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
 public import MeanFourier.Mathlib.Topology.Bornology.Basic
 public import MeanFourier.AlmostConvergent
 
@@ -23,6 +24,7 @@ This files defines uniformly almost-periodic functions in a group following von 
 public section
 
 open Bornology
+open scoped Pointwise
 
 variable {𝕜 G E : Type*} [RCLike 𝕜] [Group G] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
   {K L : ℝ → ℝ} {f g : G → E} {x t : G} {c : 𝕜} {z : E} {ε : ℝ}
@@ -62,8 +64,46 @@ protected lemma IsUAPWith.const : IsUAPWith 1 (Function.const G z) := by
 @[simp, fun_prop]
 protected lemma IsUAPWith.zero : IsUAPWith 1 (0 : G → E) := .const
 
-proof_wanted IsUAPWith.add :
-    ∃ M, ∀ f : G → E, IsUAPWith K f → ∀ g, IsUAPWith L g → IsUAPWith M (f + g)
+@[simp]
+lemma uniformAP_inv : AP∞(f, ε)⁻¹ = AP∞(f, ε) := by
+  ext t
+  exact (Equiv.mulLeft t).forall_congr (by simp [norm_sub_rev])
+
+lemma mul_mem_uniformAP {a b : G} {δ : ℝ} (ha : a ∈ AP∞(f, ε)) (hb : b ∈ AP∞(f, δ)) :
+    a * b ∈ AP∞(f, ε + δ) := by
+  rw [mem_uniformAP] at ha hb
+  intro x
+  have : f ((a * b)⁻¹ * x) - f x
+      = (f (b⁻¹ * (a⁻¹ * x)) - f (a⁻¹ * x)) + (f (a⁻¹ * x) - f x) := by grind [mul_inv_rev]
+  grind [norm_add_le]
+
+lemma uniformAP_mul_uniformAP_subset {δ : ℝ} : AP∞(f, ε) * AP∞(f, δ) ⊆ AP∞(f, ε + δ) := by
+  intro _ ⟨_, _, _, _, _⟩
+  grind [mul_mem_uniformAP]
+
+lemma uniformAP_pow_subset : ∀ n : ℕ, AP∞(f, ε) ^ n ⊆ AP∞(f, n * ε)
+  | 0 => by simp [mem_uniformAP]
+  | n + 1 => by
+    grw [pow_succ, uniformAP_pow_subset, uniformAP_mul_uniformAP_subset]
+    grind [uniformAP]
+
+lemma inter_subset_uniformAP_add {δ : ℝ} :
+    AP∞(f, ε) ∩ AP∞(g, δ) ⊆ AP∞(f + g, ε + δ) := by
+  intro t ht
+  obtain ⟨htf, htg⟩ := ht
+  intro x
+  have : f (t⁻¹ * x) + g (t⁻¹ * x) - (f x + g x)
+      = (f (t⁻¹ * x) - f x) + (g (t⁻¹ * x) - g x) := by grind
+  grind [Pi.add_apply, norm_add_le, htf x, htg x]
+
+protected lemma IsUAPWith.add (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
+    IsUAPWith (fun ε ↦ K (ε / 4) * L (ε / 4)) (f + g) := by
+  rintro ε hε
+  replace hε : (0 : ℝ) < ε / 4 := by linarith
+  refine ((hf hε).inter (hg hε)).subset_right ?_
+  grw [uniformAP_inv, uniformAP_inv, uniformAP_mul_uniformAP_subset, uniformAP_mul_uniformAP_subset,
+    inter_subset_uniformAP_add]
+  grind
 
 @[to_fun]
 protected lemma IsUAPWith.smul (hf : IsUAPWith K f) (hc : c ≠ 0) :
@@ -96,7 +136,9 @@ protected lemma IsUAP.const : IsUAP (Function.const G z) := fun ε hε ↦ ⟨1,
 
 @[to_fun (attr := fun_prop)]
 protected lemma IsUAP.add (hf : IsUAP f) (hg : IsUAP g) : IsUAP (f + g) := by
-  sorry
+  obtain ⟨K, hf⟩ := hf.exists_isUAPWith
+  obtain ⟨L, hg⟩ := hg.exists_isUAPWith
+  exact (hf.add hg).isUAP
 
 @[to_fun (attr := fun_prop)]
 protected lemma IsUAP.smul (hf : IsUAP f) : IsUAP (c • f) := by
