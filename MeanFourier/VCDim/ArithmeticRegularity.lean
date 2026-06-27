@@ -43,14 +43,14 @@ theorem arithmetic_regularity_mean_hasMulVCDimLE
     -- (hAreg : (foelner μ l F hF).IsTranslationRegular A)
     (hAdens : α ≤ foelner μ l F hF 𝟭_[A])
     (hAvcdim : HasMulVCDimLE d A) :
-    ∃ H : BohrSet G, H.dimRank ≤ (α * ε) ^ (1000 * d) ∧
+    ∃ H : BohrSet G, H.dimRank ≤ (α * ε)⁻¹ ^ (1000 * d) ∧
     ∃ A' ⊆ A, (1 - ε) * foelner μ l F hF 𝟭_[A] ≤ foelner μ l F hF 𝟭_[A'] ∧
     ∀ᶠ i in l, foelner μ l F hF 𝟭_[A ∆ ((F i ∩ H) * A')] ≤ ε := sorry
 
 theorem arithmetic_regularity_finite_hasMulVCDimLE [Fintype G] [DecidableEq G] {A : Finset G}
     (hα : 0 < α) (hε : 0 < ε) (hAdens : α ≤ A.dens)
     (hAvcdim : HasMulVCDimLE d (A : Set G)) :
-    ∃ H : BohrSet G, H.dimRank ≤ (α * ε) ^ (1000 * d) ∧
+    ∃ H : BohrSet G, H.dimRank ≤ (α * ε)⁻¹ ^ (1000 * d) ∧
     ∃ A' ⊆ A, (1 - ε) * A.dens ≤ A'.dens ∧ (A ∆ ((H : Set G).toFinite.toFinset * A')).dens ≤ ε := by
   classical
   let : MeasurableSpace G := ⊤
