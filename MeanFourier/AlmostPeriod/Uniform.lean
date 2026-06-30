@@ -42,6 +42,14 @@ def uniformAP : Set G := {t | ∀ x, ‖f (t⁻¹ * x) - f x‖ ≤ ε}
 
 @[simp] lemma mem_uniformAP : t ∈ AP∞(f, ε) ↔ ∀ x, ‖f (t⁻¹ * x) - f x‖ ≤ ε := .rfl
 
+@[simp]
+lemma uniformAP_inv : AP∞(f, ε)⁻¹ = AP∞(f, ε) := by
+  ext t
+  exact (Equiv.mulLeft t).forall_congr (by simp [norm_sub_rev])
+
+lemma inv_mem_uniformAP (ht : t ∈ AP∞(f, ε)) : t⁻¹ ∈ AP∞(f, ε) := by
+  rw [← uniformAP_inv]; exact Set.inv_mem_inv.2 ht
+
 @[to_fun (attr := simp) uniformAP_fun_const]
 lemma uniformAP_const (hε : 0 ≤ ε) : AP∞(Function.const G z, ε) = .univ := by simp [uniformAP, hε]
 
@@ -67,11 +75,6 @@ protected lemma IsUAPWith.const : IsUAPWith 1 (Function.const G z) := by
 
 @[simp, fun_prop]
 protected lemma IsUAPWith.zero : IsUAPWith 1 (0 : G → E) := .const
-
-@[simp]
-lemma uniformAP_inv : AP∞(f, ε)⁻¹ = AP∞(f, ε) := by
-  ext t
-  exact (Equiv.mulLeft t).forall_congr (by simp [norm_sub_rev])
 
 lemma mul_mem_uniformAP {a b : G} {δ : ℝ} (ha : a ∈ AP∞(f, ε)) (hb : b ∈ AP∞(f, δ)) :
     a * b ∈ AP∞(f, ε + δ) := by
