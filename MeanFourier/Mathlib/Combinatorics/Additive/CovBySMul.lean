@@ -15,15 +15,13 @@ public section
 
 variable {M G X : Type*}
 
-
-namespace CovBySMul
 section Monoid
 variable [Monoid M] [MulAction M X] {A B : Set X} {K L ε : ℝ} {m n : ℕ}
 
 attribute [gcongr] CovBySMul.subset_left CovBySMul.subset_right
 
 @[to_additive]
-lemma prod {N : Type*} [Group N] {A B : Set M} {C D : Set N} (hAB : CovBySMul M K A B)
+lemma CovBySMul.prod {N : Type*} [Group N] {A B : Set M} {C D : Set N} (hAB : CovBySMul M K A B)
     (hCD : CovBySMul N L C D) : CovBySMul (M × N) (K * L) (A ×ˢ C) (B ×ˢ D) := by
   obtain ⟨F₁, h₁, hAB⟩ := hAB
   obtain ⟨F₂, h₂, hCD⟩ := hCD
@@ -39,7 +37,7 @@ lemma prod {N : Type*} [Group N] {A B : Set M} {C D : Set N} (hAB : CovBySMul M 
   exact ⟨(g, h), by simp [*], (b, d), by simp [*]⟩
 
 @[to_additive]
-lemma pi {ι : Type*} {G X : ι → Type*} {s : Finset ι} [∀ i, Group (G i)]
+lemma CovBySMul.pi {ι : Type*} {G X : ι → Type*} {s : Finset ι} [∀ i, Group (G i)]
     [∀ i, MulAction (G i) (X i)] {A B : ∀ i, Set (X i)} {K : ι → ℝ}
     (hAB : ∀ i ∈ s, CovBySMul (G i) (K i) (A i) (B i)) :
     CovBySMul (∀ i, G i) (∏ i ∈ s, K i) (.pi s A) (.pi s B) := by
@@ -65,11 +63,11 @@ lemma covBySMul_univ_ball_one :
 
 end Monoid
 
-variable [Group G]
+variable [Group G] {A B C : Set G} {K L : ℝ}
 
 @[to_additive]
-lemma inter {A B C : Set G} {K' L' : ℝ} (hA : CovBySMul G K' C A) (hB : CovBySMul G L' C B) :
-    CovBySMul G (K' * L') C (A⁻¹ * A ∩ (B⁻¹ * B)) := by
+lemma CovBySMul.inter (hA : CovBySMul G K C A) (hB : CovBySMul G L C B) :
+    CovBySMul G (K * L) C (A⁻¹ * A ∩ (B⁻¹ * B)) := by
   classical
   obtain ⟨F₁, hF₁card, hF₁⟩ := hA
   obtain ⟨F₂, hF₂card, hF₂⟩ := hB
@@ -92,4 +90,9 @@ lemma inter {A B C : Set G} {K' L' : ℝ} (hA : CovBySMul G K' C A) (hB : CovByS
       ⟨((pair x).2⁻¹ * r)⁻¹, ?_, (pair x).2⁻¹ * x, (hp x hx).2.2.2, by group⟩⟩, by simp⟩
       <;> grind [Set.mem_inv, inv_inv]
 
-end CovBySMul
+/-- Covering `B` by `K` right translates of `A` is the same as covering `B⁻¹` by `K` left translates
+of `A⁻¹`. -/
+lemma covBySMul_mulOpposite_iff : CovBySMul Gᵐᵒᵖ K A B ↔ CovBySMul G K A⁻¹ B⁻¹ := by
+  refine ((Equiv.inv G).trans MulOpposite.opEquiv).finsetCongr.symm.exists_congr' ?_
+  simp [Set.inv_subset, ← Function.comp_def _ (·⁻¹), Set.image_comp, -MulOpposite.op_inv,
+    Set.image_op_smul]
