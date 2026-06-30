@@ -31,7 +31,7 @@ public section
 open Bornology Metric
 open scoped Pointwise
 
-variable {𝕜 G R E : Type*} [RCLike 𝕜] [Group G] {K L : ℝ → ℝ} {x t : G} {c : 𝕜}
+variable {𝕜 G R E : Type*} [RCLike 𝕜] [Group G] {K L : ℝ → ℝ} {a x t : G} {c : 𝕜}
 
 section NormedAddCommGroup
 variable [NormedAddCommGroup E] [NormedSpace 𝕜 E] {f g : G → E} {z : E} {ε : ℝ}
@@ -59,6 +59,16 @@ lemma uniformAP_const (hε : 0 ≤ ε) : AP∞(Function.const G z, ε) = .univ :
 @[to_fun (attr := simp) uniformAP_fun_smul]
 lemma uniformAP_smul (hc : c ≠ 0) : AP∞(c • f, ε) = AP∞(f, ε / ‖c‖) := by
   ext t; simp [← smul_sub, norm_smul, le_div_iff₀' (norm_pos_iff.2 hc)]
+
+/-- The almost periods of `f ∘ φ` are the preimage under a group isomorphism `φ` of those of `f`. -/
+@[simp]
+lemma uniformAP_comp_mulEquiv {H : Type*} [Group H] (φ : H ≃* G) :
+    AP∞(f ∘ φ, ε) = φ ⁻¹' AP∞(f, ε) := by
+  ext; simp [φ.surjective.forall]
+
+/-- The almost periods are unchanged by right translation of the argument. -/
+@[simp] lemma uniformAP_comp_mul_right (a : G) : AP∞(fun x ↦ f (x * a), ε) = AP∞(f, ε) := by
+  ext t; exact (Equiv.mulRight a).forall_congr <| by simp [mul_assoc]
 
 @[simp]
 lemma uniformAP_translate : AP∞(τ_[x] f, ε) = AP∞(f, ε) := by
@@ -126,6 +136,9 @@ protected lemma IsUAPWith.smul (hf : IsUAPWith K f) (hc : c ≠ 0) :
 protected lemma IsUAPWith.translate (hf : IsUAPWith K f) : IsUAPWith K (τ_[t] f) := by
   simpa [IsUAPWith] using hf
 
+protected lemma IsUAPWith.comp_mul_right (hf : IsUAPWith K f) :
+    IsUAPWith K (fun x ↦ f (x * a)) := by simpa [IsUAPWith] using hf
+
 variable (f) in
 /-- A function is uniformly almost periodic if its uniform `ε`-almost periods are syndetic for all
 `ε > 0`. -/
@@ -156,6 +169,22 @@ protected lemma IsUAP.smul (hf : IsUAP f) : IsUAP (c • f) := by
   · simp
   · obtain ⟨K, hf⟩ := hf.exists_isUAPWith
     exact (hf.smul hc).isUAP
+
+/-- Almost periodicity is preserved by precomposition with a group isomorphism. -/
+protected lemma IsUAP.comp_mulEquiv {H : Type*} [Group H] (φ : H ≃* G) (hf : IsUAP f) :
+    IsUAP (f ∘ φ) := by
+  classical
+  intro ε hε
+  obtain ⟨K, F, hFK, hcov⟩ := hf hε
+  refine ⟨K, F.image φ.symm, by grw [Finset.card_image_le, hFK], fun h _ ↦ ?_⟩
+  obtain ⟨a, ha, s, hs, hgs⟩ := Set.mem_smul.1 (hcov (Set.mem_univ (φ h)))
+  rw [smul_eq_mul] at hgs
+  rw [uniformAP_comp_mulEquiv]
+  exact ⟨φ.symm a, Finset.mem_image_of_mem _  ha, φ.symm s, by simpa using hs, by
+    simp [← map_mul, hgs]⟩
+
+protected lemma IsUAP.comp_mul_right (hf : IsUAP f) : IsUAP (fun x ↦ f (x * a)) := by
+  obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.comp_mul_right.isUAP
 
 @[fun_prop]
 protected lemma IsUAP.translate (hf : IsUAP f) : IsUAP (τ_[x] f) := by
@@ -213,6 +242,23 @@ end MetricSpace
 protected lemma IsUAP.isAlmostConvergent [NormedSpace ℝ E] (hf : IsUAP f) :
     IsAlmostConvergent f := by
   sorry
+
+section Star
+variable [StarAddMonoid E] [NormedStarGroup E]
+
+/-- The almost periods are unchanged by applying an isometric `star` pointwise. -/
+@[simp] lemma uniformAP_star : AP∞(fun x ↦ star (f x), ε) = AP∞(f, ε) := by
+  ext t; simp only [mem_uniformAP, ← star_sub, norm_star]
+
+@[fun_prop]
+protected lemma IsUAPWith.star (hf : IsUAPWith K f) : IsUAPWith K (fun x ↦ star (f x)) := by
+  simpa only [IsUAPWith, uniformAP_star] using hf
+
+@[fun_prop]
+protected lemma IsUAP.star (hf : IsUAP f) : IsUAP (fun x ↦ star (f x)) := by
+  obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.star.isUAP
+
+end Star
 
 end NormedAddCommGroup
 
