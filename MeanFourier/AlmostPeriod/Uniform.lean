@@ -160,7 +160,18 @@ protected lemma IsUAP.translate (hf : IsUAP f) : IsUAP (τ_[x] f) := by
 
 @[fun_prop]
 protected lemma IsUAP.isBddFun (hf : IsUAP f) : IsBddFun f := by
-  sorry
+  -- At `ε = 1`, the almost periods are syndetic: `univ ⊆ F • AP∞(f, 1)` for some finite `F`.
+  obtain ⟨-, F, -, hsub⟩ := hf zero_lt_one
+  -- Hence `range f` lies in the finite union of unit balls around the values `f g⁻¹`, `g ∈ F`.
+  refine ((isBounded_biUnion F.finite_toSet).2 fun g _ ↦
+    isBounded_closedBall (x := f g⁻¹) (r := 1)).subset ?_
+  rintro _ ⟨y, rfl⟩
+  obtain ⟨g, hg, t, ht, hgt⟩ := Set.mem_smul.1 (hsub (Set.mem_univ y⁻¹))
+  rw [smul_eq_mul] at hgt
+  -- `y = t⁻¹ * g⁻¹`, and `t` is an `ε`-almost period, so `‖f y - f g⁻¹‖ ≤ 1`.
+  have hy : t⁻¹ * g⁻¹ = y := by rw [← mul_inv_rev, hgt, inv_inv]
+  refine Set.mem_biUnion hg ?_
+  simpa [Metric.mem_closedBall, dist_eq_norm, hy] using ht g⁻¹
 
 section MetricSpace
 variable [MetricSpace G] [IsIsometricSMul Gᵐᵒᵖ G] {δ : ℝ → ℝ}
