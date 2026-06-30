@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.RCLike.Basic
 public import MeanFourier.AlmostConvergent
+public import MeanFourier.Mathlib.Analysis.Normed.Group.Bounded
 public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
 public import MeanFourier.Mathlib.Data.ENat.Basic
 public import MeanFourier.Mathlib.Data.EReal.Basic
@@ -30,8 +31,10 @@ public section
 open Bornology Metric
 open scoped Pointwise
 
-variable {𝕜 G K E : Type*} [RCLike 𝕜] [Group G] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-  {K L : ℝ → ℝ} {f g : G → E} {x t : G} {c : 𝕜} {z : E} {ε : ℝ}
+variable {𝕜 G R E : Type*} [RCLike 𝕜] [Group G] {K L : ℝ → ℝ} {x t : G} {c : 𝕜}
+
+section NormedAddCommGroup
+variable [NormedAddCommGroup E] [NormedSpace 𝕜 E] {f g : G → E} {z : E} {ε : ℝ}
 
 variable (f ε) in
 /-- The uniform `ε`-almost periods of a function `f` from a group `G` to a normed space `E` are
@@ -210,3 +213,50 @@ end MetricSpace
 protected lemma IsUAP.isAlmostConvergent [NormedSpace ℝ E] (hf : IsUAP f) :
     IsAlmostConvergent f := by
   sorry
+
+end NormedAddCommGroup
+
+section NormedRing
+variable [NormedRing R] {f g : G → R} {ε : ℝ}
+
+/-- If `t` is an `ε`-almost period of a `Bf`-bounded `f` and a `δ`-almost period of a `Bg`-bounded
+`g`, then it is a `(Bg ε + Bf δ)`-almost period of the product `f * g`. -/
+lemma inter_subset_uniformAP_mul {Bf Bg δ : ℝ} (hfb : ∀ x, ‖f x‖ ≤ Bf) (hgb : ∀ x, ‖g x‖ ≤ Bg) :
+    AP∞(f, ε) ∩ AP∞(g, δ) ⊆ AP∞(f * g, Bg * ε + Bf * δ) := by
+  rintro t ⟨htf, htg⟩ x
+  have : 0 ≤ Bf := by grw [← hfb 1, ← norm_nonneg]
+  have : 0 ≤ ε := by grw [← htf 1, ← norm_nonneg]
+  calc ‖(f * g) (t⁻¹ * x) - (f * g) x‖
+      = ‖f (t⁻¹ * x) * (g (t⁻¹ * x) - g x) + (f (t⁻¹ * x) - f x) * g x‖ := by
+        simp only [Pi.mul_apply]; noncomm_ring
+    _ ≤ Bf * δ + ε * Bg := by grw [norm_add_le, norm_mul_le, norm_mul_le, hfb, htg x, htf x, hgb x]
+    _ = Bg * ε + Bf * δ := by ring
+
+/-- Quantitative form: the pointwise product of two uniformly almost periodic functions is uniformly
+almost periodic, with an explicit modulus depending on bounds `Bf`, `Bg` for `f`, `g`. -/
+protected lemma IsUAPWith.mul {Bf Bg : ℝ} (hfb : ∀ x, ‖f x‖ ≤ Bf) (hgb : ∀ x, ‖g x‖ ≤ Bg)
+    (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
+    IsUAPWith (fun ε ↦ K (ε / (4 * (Bf + Bg + 1))) * L (ε / (4 * (Bf + Bg + 1)))) (f * g) := by
+  have hBf : 0 ≤ Bf := by grw [← hfb 1, ← norm_nonneg]
+  have hBg : 0 ≤ Bg := by grw [← hgb 1, ← norm_nonneg]
+  have hden : (0 : ℝ) < 4 * (Bf + Bg + 1) := by linarith
+  rintro ε hε
+  set δ := ε / (4 * (Bf + Bg + 1)) with hδ_def
+  refine ((hf (ε := δ) (by positivity)).inter (hg (ε := δ) (by positivity))).subset_right ?_
+  grw [uniformAP_inv, uniformAP_inv, uniformAP_mul_uniformAP_subset, uniformAP_mul_uniformAP_subset,
+    inter_subset_uniformAP_mul hfb hgb]
+  intro t ht x
+  have hge : Bg * (δ + δ) + Bf * (δ + δ) = 2 * (Bf + Bg) * ε / (4 * (Bf + Bg + 1)) := by ring
+  grw [ht x, hge]
+  field_simp
+  nlinarith [hBf, hBg, hε]
+
+@[fun_prop]
+protected lemma IsUAP.mul (hf : IsUAP f) (hg : IsUAP g) : IsUAP (f * g) := by
+  obtain ⟨Bf, hBf⟩ := hf.isBddFun.exists_forall_norm_le
+  obtain ⟨Bg, hBg⟩ := hg.isBddFun.exists_forall_norm_le
+  obtain ⟨K, hf'⟩ := hf.exists_isUAPWith
+  obtain ⟨L, hg'⟩ := hg.exists_isUAPWith
+  exact (hf'.mul hBf hBg hg').isUAP
+
+end NormedRing
