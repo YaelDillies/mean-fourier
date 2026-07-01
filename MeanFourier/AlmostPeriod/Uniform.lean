@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.RCLike.Basic
 public import MeanFourier.AlmostConvergent
+public import MeanFourier.UnitaryRepresentation
 public import MeanFourier.Mathlib.Analysis.Normed.Group.Bounded
 public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
 public import MeanFourier.Mathlib.Data.ENat.Basic
@@ -306,3 +307,87 @@ protected lemma IsUAP.mul (hf : IsUAP f) (hg : IsUAP g) : IsUAP (f * g) := by
   exact (hf'.mul hBf hBg hg').isUAP
 
 end NormedRing
+
+open scoped Pointwise InnerProductSpace Finset in
+lemma unitary_isUAP_cover_exists {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℂ E] [FiniteDimensional ℂ E]
+    (ρ : UnitaryRepresentation ℂ G E) (v w : E) (ε : ℝ) (hε : 0 < ε) :
+    ∃ F : Finset G, .univ ⊆ (F : Set G) • AP∞(fun x ↦ ⟪ρ x v, w⟫_ℂ, ε) := by
+  classical
+  have : ProperSpace E := FiniteDimensional.proper ℂ E
+  have horb : TotallyBounded (Set.range fun t : G ↦ ρ t w) := by
+    refine (isCompact_closedBall (0 : E) ‖w‖).totallyBounded.subset ?_
+    rintro - ⟨t, rfl⟩
+    simp
+  set ε' : ℝ := ε / (‖v‖ + 1) with hε'
+  have hε'pos : 0 < ε' := by positivity
+  obtain ⟨c, hcsub, hcfin, hccover⟩ := totallyBounded_iff_subset.1 horb _
+    (Metric.dist_mem_uniformity hε'pos)
+  have hch : ∀ y ∈ c, ∃ t : G, ρ t w = y := fun y hy ↦ hcsub hy
+  choose! tc htc using hch
+  set F : Finset G := hcfin.toFinset.image tc
+  refine ⟨F, ?_⟩
+  rintro x -
+  have hx : ρ x w ∈ ⋃ y ∈ c, {z | (z, y) ∈ {p : E × E | dist p.1 p.2 < ε'}} :=
+    hccover ⟨x, rfl⟩
+  rw [Set.mem_iUnion₂] at hx
+  obtain ⟨y, hy, hxy⟩ := hx
+  refine ⟨tc y, Finset.mem_image_of_mem _ (hcfin.mem_toFinset.2 hy), (tc y)⁻¹ * x, ?_, ?_⟩
+  · rw [mem_uniformAP]
+    intro z
+    have hkey : ∀ (s : G) (z' : G), ⟪ρ (s⁻¹ * z') v, w⟫_ℂ = ⟪ρ z' v, ρ s w⟫_ℂ := by
+      intro s z'
+      have h1 : ρ (s⁻¹ * z') v = (ρ s).symm (ρ z' v) := by simp
+      rw [h1]
+      calc ⟪(ρ s).symm (ρ z' v), w⟫_ℂ
+          = ⟪ρ s ((ρ s).symm (ρ z' v)), ρ s w⟫_ℂ := ((ρ s).inner_map_map _ _).symm
+        _ = ⟪ρ z' v, ρ s w⟫_ℂ := by simp
+    have h1 : ⟪ρ (((tc y)⁻¹ * x)⁻¹ * z) v, w⟫_ℂ = ⟪ρ (tc y * z) v, ρ x w⟫_ℂ := by
+      rw [← hkey x (tc y * z)]
+      have : ((tc y)⁻¹ * x)⁻¹ * z = x⁻¹ * (tc y * z) := by group
+      rw [this]
+    have h2 : ⟪ρ z v, w⟫_ℂ = ⟪ρ (tc y * z) v, ρ (tc y) w⟫_ℂ := by
+      rw [← hkey (tc y) (tc y * z)]
+      have : (tc y)⁻¹ * (tc y * z) = z := by group
+      rw [this]
+    rw [h1, h2, ← inner_sub_right]
+    calc ‖⟪ρ (tc y * z) v, ρ x w - ρ (tc y) w⟫_ℂ‖
+        ≤ ‖ρ (tc y * z) v‖ * ‖ρ x w - ρ (tc y) w‖ := norm_inner_le_norm _ _
+      _ = ‖v‖ * ‖ρ x w - ρ (tc y) w‖ := by simp
+      _ ≤ ‖v‖ * ε' := by
+          gcongr
+          rw [htc y hy, ← dist_eq_norm]
+          exact hxy.le
+      _ ≤ ε := by
+          rw [hε']
+          have : ‖v‖ * (ε / (‖v‖ + 1)) = ε * (‖v‖ / (‖v‖ + 1)) := by ring
+          rw [this]
+          refine mul_le_of_le_one_right hε.le ?_
+          exact div_le_one_of_le₀ (by linarith) (by positivity)
+  · exact mul_inv_cancel_left (tc y) x
+
+noncomputable def unitary_isUAP_bound {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℂ E] [FiniteDimensional ℂ E]
+    (ρ : UnitaryRepresentation ℂ G E) (v w : E) (ε : ℝ) : ℝ :=
+  if h : 0 < ε then
+    (Classical.choose (unitary_isUAP_cover_exists ρ v w ε h)).card
+  else 0
+
+open scoped Pointwise InnerProductSpace Finset in
+theorem UnitaryRepresentation.isUAPWith_inner {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℂ E] [FiniteDimensional ℂ E]
+    (ρ : UnitaryRepresentation ℂ G E) (v w : E) :
+    IsUAPWith (unitary_isUAP_bound ρ v w) (fun x ↦ ⟪ρ x v, w⟫_ℂ) := by
+  intro ε hε
+  simp only [unitary_isUAP_bound, hε, dite_true]
+  set F := Classical.choose (unitary_isUAP_cover_exists ρ v w ε hε)
+  have hF : .univ ⊆ (F : Set G) • AP∞(fun x ↦ ⟪ρ x v, w⟫_ℂ, ε) :=
+    Classical.choose_spec (unitary_isUAP_cover_exists ρ v w ε hε)
+  exact ⟨F, le_rfl, hF⟩
+
+open scoped Pointwise InnerProductSpace Finset in
+theorem UnitaryRepresentation.isUAP_inner {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℂ E] [FiniteDimensional ℂ E]
+    (ρ : UnitaryRepresentation ℂ G E) (v w : E) :
+    IsUAP fun x ↦ ⟪ρ x v, w⟫_ℂ :=
+  (isUAPWith_inner ρ v w).isUAP
