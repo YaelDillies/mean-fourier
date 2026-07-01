@@ -43,7 +43,7 @@ def uniformAP : Set G := {t | ∀ x, ‖f (t⁻¹ * x) - f x‖ ≤ ε}
 
 @[inherit_doc uniformAP] notation3 "AP∞("f ", " ε ")" => uniformAP f ε
 
-@[simp] lemma mem_uniformAP : t ∈ AP∞(f, ε) ↔ ∀ x, ‖f (t⁻¹ * x) - f x‖ ≤ ε := .rfl
+lemma mem_uniformAP : t ∈ AP∞(f, ε) ↔ ∀ x, ‖f (t⁻¹ * x) - f x‖ ≤ ε := .rfl
 
 @[simp]
 lemma uniformAP_inv : AP∞(f, ε)⁻¹ = AP∞(f, ε) := by
@@ -58,13 +58,13 @@ lemma uniformAP_const (hε : 0 ≤ ε) : AP∞(Function.const G z, ε) = .univ :
 
 @[to_fun (attr := simp) uniformAP_fun_smul]
 lemma uniformAP_smul (hc : c ≠ 0) : AP∞(c • f, ε) = AP∞(f, ε / ‖c‖) := by
-  ext t; simp [← smul_sub, norm_smul, le_div_iff₀' (norm_pos_iff.2 hc)]
+  ext t; simp [mem_uniformAP, ← smul_sub, norm_smul, le_div_iff₀' (norm_pos_iff.2 hc)]
 
 /-- The almost periods of `f ∘ φ` are the preimage under a group isomorphism `φ` of those of `f`. -/
 @[simp]
 lemma uniformAP_comp_mulEquiv {H : Type*} [Group H] (φ : H ≃* G) :
     AP∞(f ∘ φ, ε) = φ ⁻¹' AP∞(f, ε) := by
-  ext; simp [φ.surjective.forall]
+  ext; simp [mem_uniformAP, φ.surjective.forall]
 
 /-- The almost periods are unchanged by right translation of the argument. -/
 @[simp] lemma uniformAP_comp_mul_right (a : G) : AP∞(fun x ↦ f (x * a), ε) = AP∞(f, ε) := by
