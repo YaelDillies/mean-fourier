@@ -356,3 +356,11 @@ protected lemma IsUAP.mul (hf : IsUAP f) (hg : IsUAP g) : IsUAP (f * g) := by
   exact (hf'.mul hBf hBg hg').isUAP
 
 end NormedRing
+
+section NormedCommRing
+variable [NormedCommRing R] [StarRing R] [NormedStarGroup R] {f : G → R}
+
+open scoped ComplexConjugate in
+protected lemma IsUAP.conj (hf : IsUAP f) : IsUAP fun x ↦ conj (f x) := hf.star
+
+end NormedCommRing
