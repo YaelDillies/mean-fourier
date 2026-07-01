@@ -6,6 +6,7 @@ public import Mathlib.Topology.MetricSpace.CoveringNumbers
 
 import Mathlib.Algebra.Order.BigOperators.Ring.Finset
 import Mathlib.Tactic.Group
+import MeanFourier.Mathlib.Data.EReal.Basic
 import MeanFourier.Mathlib.Data.Fintype.BigOperators
 
 open Metric
@@ -53,14 +54,6 @@ lemma CovBySMul.pi {ι : Type*} {G X : ι → Type*} {s : Finset ι} [∀ i, Gro
   exact ⟨fun i ↦ if i ∈ s then g i else 1, by simp_all [apply_ite],
     fun i ↦ if i ∈ s then y i else x i, by simp_all, by ext; dsimp; split <;> simp_all⟩
 
-variable [PseudoMetricSpace M] [IsIsometricSMul Mᵐᵒᵖ M]
-
-@[simp]
-lemma covBySMul_univ_ball_one :
-    CovBySMul M K .univ (ball (1 : M) ε) ↔
-      (coveringNumber ε.toNNReal (.univ : Set M) : EReal) ≤ K := by
-  sorry
-
 end Monoid
 
 variable [Group G] {A B C : Set G} {K L : ℝ}
@@ -89,6 +82,77 @@ lemma CovBySMul.inter (hA : CovBySMul G K C A) (hB : CovBySMul G L C B) :
       ⟨((pair x).1⁻¹ * r)⁻¹, ?_, (pair x).1⁻¹ * x, (hp x hx).2.2.1, by group⟩,
       ⟨((pair x).2⁻¹ * r)⁻¹, ?_, (pair x).2⁻¹ * x, (hp x hx).2.2.2, by group⟩⟩, by simp⟩
       <;> grind [Set.mem_inv, inv_inv]
+
+namespace CovBySMul
+
+variable [PseudoMetricSpace G] [IsIsometricSMul Gᵐᵒᵖ G] {K L : ℝ} {ε : ℝ}
+
+protected lemma edist_inv_le_of_mem_smul_closedBall (hε : 0 ≤ ε)
+    {x g y : G} (hy : y ∈ closedBall (1 : G) ε) (hxy : g * y = x⁻¹) :
+    edist x g⁻¹ ≤ ε.toNNReal := by
+  simpa [edist_le_coe, ← dist_le_coe, Real.coe_toNNReal _ hε, ← dist_mul_right x g⁻¹ g,
+    inv_mul_cancel, show x * g = y⁻¹ by rw [← inv_inv x, ← hxy]; group,
+    ← dist_mul_right y⁻¹ 1 y, one_mul, dist_comm, ← mem_closedBall] using hy
+
+protected lemma mem_closedBall_one_mul_of_edist_inv_le
+    (hε : 0 ≤ ε) {x g : G} (h : edist x⁻¹ g ≤ ε.toNNReal) :
+    g * x ∈ closedBall (1 : G) ε := by
+  rw [mem_closedBall, dist_comm, ← inv_mul_cancel x, dist_mul_right]
+  rwa [edist_le_coe, ← dist_le_coe, Real.coe_toNNReal _ hε] at h
+
+protected lemma univ_subset_smul_closedBall_one_iff_isCover (hε : 0 ≤ ε) (F : Finset G) :
+    ((F : Set G) • closedBall (1 : G) ε = .univ) ↔
+    IsCover ε.toNNReal (Set.univ : Set G) (F : Set G)⁻¹ := by
+  refine ⟨fun h x _ ↦ ?_, fun h ↦ ?_⟩
+  · have h_sub : Set.univ ⊆ (F : Set G) • closedBall (1 : G) ε := h.symm.subset
+    obtain ⟨g, hg, y, hy, hxy⟩ := Set.mem_smul.mp (h_sub (Set.mem_univ x⁻¹))
+    refine ⟨g⁻¹, by simp [hg], CovBySMul.edist_inv_le_of_mem_smul_closedBall hε hy ?_⟩
+    rwa [smul_eq_mul] at hxy
+  · rw [Set.eq_univ_iff_forall]
+    intro x
+    obtain ⟨g_inv, hg_inv, hdist⟩ := h (Set.mem_univ x⁻¹)
+    refine ⟨g_inv⁻¹, hg_inv, g_inv * x,
+      CovBySMul.mem_closedBall_one_mul_of_edist_inv_le hε hdist, ?_⟩
+    simp
+
+@[simp]
+lemma univ_closedBall_one (hε : 0 ≤ ε) :
+    CovBySMul G K .univ (closedBall (1 : G) ε) ↔
+    (coveringNumber ε.toNNReal (.univ : Set G) : EReal) ≤ K := by
+  classical
+  refine ⟨?_, ?_⟩
+  · rintro ⟨F, hF, h_cover⟩
+    rw [Set.univ_subset_iff] at h_cover
+    rw [CovBySMul.univ_subset_smul_closedBall_one_iff_isCover hε F] at h_cover
+    have h_card : ((F : Set G)⁻¹).encard = F.card := by
+      rw [← Set.inv_preimage, Set.encard_preimage_of_bijective inv_bijective,
+        Set.encard_coe_eq_coe_finsetCard]
+    have h_le : (coveringNumber ε.toNNReal (.univ : Set G) : EReal) ≤ ((F.card : ℕ∞) : EReal) := by
+      exact_mod_cast h_card ▸ h_cover.coveringNumber_le_encard (Set.subset_univ _)
+    have hF_cast : ((F.card : ℕ∞) : EReal) ≤ K := by
+      change (F.card : EReal) ≤ K
+      exact_mod_cast hF
+    exact h_le.trans hF_cast
+  · intro h
+    have h_ne_top : coveringNumber ε.toNNReal (.univ : Set G) ≠ ⊤ :=
+      ENat.ne_top_of_ennrealToEReal_toENNReal_le_realToEReal h
+    set F' : Finset G := (finite_minimalCover (A := (.univ : Set G)) (ε := ε.toNNReal)).toFinset
+    have hF'_card_top : (F'.card : ℕ∞) = coveringNumber ε.toNNReal (.univ : Set G) := by
+      rw [← Set.encard_coe_eq_coe_finsetCard, Set.Finite.coe_toFinset, encard_minimalCover h_ne_top]
+    have h_cover : IsCover ε.toNNReal (.univ : Set G) (F' : Set G) := by
+      rw [Set.Finite.coe_toFinset]
+      exact isCover_minimalCover h_ne_top
+    refine ⟨F'.image (·⁻¹), ?_, ?_⟩
+    · rw [Finset.card_image_of_injective F' inv_injective]
+      have : F'.card = (coveringNumber ε.toNNReal (.univ : Set G)).toNat :=
+        congrArg ENat.toNat hF'_card_top
+      rw [this]
+      exact ENat.natCast_toNat_le_of_ennrealToEReal_toENNReal_le_realToEReal h
+    · rw [Set.univ_subset_iff, CovBySMul.univ_subset_smul_closedBall_one_iff_isCover hε]
+      have : ((F'.image (fun x ↦ x⁻¹ : G → G) : Set G)⁻¹) = (F' : Set G) := by simp
+      exact this.symm ▸ h_cover
+
+end CovBySMul
 
 /-- Covering `B` by `K` right translates of `A` is the same as covering `B⁻¹` by `K` left translates
 of `A⁻¹`. -/
