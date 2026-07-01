@@ -21,6 +21,10 @@ variable [Monoid M] [MulAction M X] {A B : Set X} {K L ε : ℝ} {m n : ℕ}
 attribute [gcongr] CovBySMul.subset_left CovBySMul.subset_right
 
 @[to_additive]
+lemma CovBySMul.pos (hAB : CovBySMul M K A B) (hA : A.Nonempty) : 0 < K := by
+  obtain ⟨F, hFK, hFAB⟩ := hAB; contrapose! hA; grw [hA] at hFK; simp_all
+
+@[to_additive]
 lemma CovBySMul.prod {N : Type*} [Group N] {A B : Set M} {C D : Set N} (hAB : CovBySMul M K A B)
     (hCD : CovBySMul N L C D) : CovBySMul (M × N) (K * L) (A ×ˢ C) (B ×ˢ D) := by
   obtain ⟨F₁, h₁, hAB⟩ := hAB

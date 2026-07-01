@@ -6,6 +6,7 @@ Authors: Yaël Dillies
 module
 
 public import Mathlib.Analysis.RCLike.Basic
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import MeanFourier.AlmostConvergent
 public import MeanFourier.Mathlib.Analysis.Normed.Group.Bounded
 public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
@@ -24,12 +25,13 @@ This files defines uniformly almost-periodic functions in a group following von 
 ## References
 
 * [*Almost periodic functions in a group. I*, John von Neumann](https://doi.org/10.2307/1989792)
+* [*Eine neue Definition der fastperiodischen Funktionen*, Wilhelm Maak][maak1935]
 -/
 
 public section
 
-open Bornology Metric
-open scoped Pointwise
+open Bornology Metric Real
+open scoped Finset Pointwise
 
 variable {𝕜 G H R E : Type*} [RCLike 𝕜] [Group G] [Group H] {K L : ℝ → ℝ} {a b x t : G} {c : 𝕜}
 
@@ -39,11 +41,18 @@ variable [NormedAddCommGroup E] [NormedSpace 𝕜 E] {f g : G → E} {z : E} {ε
 variable (f ε) in
 /-- The uniform `ε`-almost periods of a function `f` from a group `G` to a normed space `E` are
 those elements of the group that move `f` by at most `ε` in L^∞ norm. -/
+@[expose]
 def uniformAP : Set G := {t | ∀ x, ‖f (t⁻¹ * x) - f x‖ ≤ ε}
 
 @[inherit_doc uniformAP] notation3 "AP∞("f ", " ε ")" => uniformAP f ε
 
 lemma mem_uniformAP : t ∈ AP∞(f, ε) ↔ ∀ x, ‖f (t⁻¹ * x) - f x‖ ≤ ε := .rfl
+
+@[simp] lemma one_mem_uniformAP : 1 ∈ AP∞(f, ε) ↔ 0 ≤ ε := by simp [mem_uniformAP]
+
+@[simp] lemma uniformAP_nonempty : AP∞(f, ε).Nonempty ↔ 0 ≤ ε where
+  mp := by rintro ⟨t, ht⟩; exact (norm_nonneg _).trans (ht 1)
+  mpr hε := ⟨1, one_mem_uniformAP.2 hε⟩
 
 @[simp]
 lemma inv_mem_uniformAP : t⁻¹ ∈ AP∞(f, ε) ↔ t ∈ AP∞(f, ε) :=
@@ -57,52 +66,6 @@ at most `ε` away in L^∞ norm. -/
 lemma mul_inv_mem_uniformAP : a * b⁻¹ ∈ AP∞(f, ε) ↔ ∀ x, ‖f (a * x) - f (b * x)‖ ≤ ε := by
   simp only [mem_uniformAP, mul_inv_rev, inv_inv]
   exact ((Equiv.mulLeft a).forall_congr <| by simp [norm_sub_rev]).symm
-
-@[to_fun (attr := simp) uniformAP_fun_const]
-lemma uniformAP_const (hε : 0 ≤ ε) : AP∞(Function.const G z, ε) = .univ := by simp [uniformAP, hε]
-
-@[to_fun (attr := simp) uniformAP_fun_smul]
-lemma uniformAP_smul (hc : c ≠ 0) : AP∞(c • f, ε) = AP∞(f, ε / ‖c‖) := by
-  ext t; simp [mem_uniformAP, ← smul_sub, norm_smul, le_div_iff₀' (norm_pos_iff.2 hc)]
-
-/-- The almost periods of `f ∘ φ` are the preimage under a group isomorphism `φ` of those of `f`. -/
-@[simp]
-lemma uniformAP_comp_mulEquiv {H : Type*} [Group H] (φ : H ≃* G) :
-    AP∞(f ∘ φ, ε) = φ ⁻¹' AP∞(f, ε) := by
-  ext; simp [mem_uniformAP, φ.surjective.forall]
-
-/-- The almost periods are unchanged by right translation of the argument. -/
-@[simp] lemma uniformAP_comp_mul_right (a : G) : AP∞(fun x ↦ f (x * a), ε) = AP∞(f, ε) := by
-  ext t; exact (Equiv.mulRight a).forall_congr <| by simp [mul_assoc]
-
-@[simp]
-lemma uniformAP_translate : AP∞(τ_[x] f, ε) = AP∞(f, ε) := by
-  sorry
-  -- ext t; exact (Equiv.mulRight x).symm.forall_congr <| by simp
-
-/-- If `f` is `δ`-uniformly close to `g`, every `ε`-almost period of `g` is an `(ε + 2δ)`-almost
-period of `f`. -/
-lemma uniformAP_subset_of_forall_norm_sub_le {g : G → E} {δ : ℝ} (hfg : ∀ x, ‖f x - g x‖ ≤ δ) :
-    AP∞(g, ε) ⊆ AP∞(f, ε + 2 * δ) := by
-  intro t ht x
-  grw [norm_sub_le_norm_sub_add_norm_sub _ (g x), norm_sub_le_norm_sub_add_norm_sub _ (g (t⁻¹ * x)),
-    hfg _, ht x, norm_sub_rev, hfg x]
-  apply le_of_eq
-  ring
-
-variable (K f) in
-/-- For a "modulus of almost-periodicity" `K : ℝ → ℝ`,a function is uniformly `K`-almost-periodic
-if its uniform `ε`-almost periods are `K_ε`-syndetic for all `ε > 0`.
-
-This is a quantitative version of `IsUAP`. -/
-@[expose, fun_prop] def IsUAPWith : Prop := ∀ ⦃ε⦄, 0 < ε → CovBySMul G (K ε) .univ AP∞(f, ε)
-
-@[to_fun (attr := simp, fun_prop)]
-protected lemma IsUAPWith.const : IsUAPWith 1 (Function.const G z) := by
-  simp +contextual [IsUAPWith, le_of_lt]
-
-@[simp, fun_prop]
-protected lemma IsUAPWith.zero : IsUAPWith 1 (0 : G → E) := .const
 
 lemma mul_mem_uniformAP {a b : G} {δ : ℝ} (ha : a ∈ AP∞(f, ε)) (hb : b ∈ AP∞(f, δ)) :
     a * b ∈ AP∞(f, ε + δ) := by
@@ -131,6 +94,53 @@ lemma inter_subset_uniformAP_add {δ : ℝ} :
       = (f (t⁻¹ * x) - f x) + (g (t⁻¹ * x) - g x) := by grind
   grind [Pi.add_apply, norm_add_le, htf x, htg x]
 
+variable (z) in
+@[to_fun (attr := simp) uniformAP_fun_const]
+lemma uniformAP_const (hε : 0 ≤ ε) : AP∞(Function.const G z, ε) = .univ := by simp [uniformAP, hε]
+
+variable (f) in
+@[to_fun (attr := simp) uniformAP_fun_smul]
+lemma uniformAP_smul (hc : c ≠ 0) : AP∞(c • f, ε) = AP∞(f, ε / ‖c‖) := by
+  ext t; simp [mem_uniformAP, ← smul_sub, norm_smul, le_div_iff₀' (norm_pos_iff.2 hc)]
+
+variable (f) in
+@[simp]
+lemma uniformAP_comp_mulEquiv (φ : H ≃* G) : AP∞(f ∘ φ, ε) = φ ⁻¹' AP∞(f, ε) := by
+  ext; simp [mem_uniformAP, φ.surjective.forall]
+
+/-- The almost periods are unchanged by right translation of the argument. -/
+@[simp] lemma uniformAP_comp_mul_right (a : G) : AP∞(fun x ↦ f (x * a), ε) = AP∞(f, ε) := by
+  ext t; exact (Equiv.mulRight a).forall_congr <| by simp [mul_assoc]
+
+/-- If `f` is `δ`-uniformly close to `g`, every `ε`-almost period of `g` is an `(ε + 2δ)`-almost
+period of `f`. -/
+lemma uniformAP_subset_of_forall_norm_sub_le {δ : ℝ} (hfg : ∀ x, ‖f x - g x‖ ≤ δ) :
+    AP∞(g, ε) ⊆ AP∞(f, ε + 2 * δ) := by
+  intro t ht x
+  grw [norm_sub_le_norm_sub_add_norm_sub _ (g x), norm_sub_le_norm_sub_add_norm_sub _ (g (t⁻¹ * x)),
+    hfg _, ht x, norm_sub_rev, hfg x]
+  apply le_of_eq
+  ring
+
+variable (K f) in
+/-- For a "modulus of almost-periodicity" `K : ℝ → ℝ`,a function is uniformly `K`-almost-periodic
+if its uniform `ε`-almost periods are `K_ε`-syndetic for all `ε > 0`.
+
+This is a quantitative version of `IsUAP`. -/
+@[expose, fun_prop] def IsUAPWith : Prop := ∀ ⦃ε⦄, 0 < ε → CovBySMul G (K ε) .univ AP∞(f, ε)
+
+lemma IsUAPWith.pos (hf : IsUAPWith K f) (hε : 0 < ε) : 0 < K ε := (hf hε).pos (by simp)
+
+lemma IsUAPWith.mono (hKL : ∀ ε > 0, K ε ≤ L ε) (hf : IsUAPWith K f) : IsUAPWith L f :=
+  fun _ε hε ↦ (hf hε).mono <| hKL _ hε
+
+@[to_fun (attr := simp, fun_prop)]
+protected lemma IsUAPWith.const : IsUAPWith 1 (Function.const G z) := by
+  simp +contextual [IsUAPWith, le_of_lt]
+
+@[simp, fun_prop]
+protected lemma IsUAPWith.zero : IsUAPWith 1 (0 : G → E) := .const
+
 protected lemma IsUAPWith.add (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
     IsUAPWith (fun ε ↦ K (ε / 4) * L (ε / 4)) (f + g) := by
   rintro ε hε
@@ -146,13 +156,6 @@ protected lemma IsUAPWith.smul (hf : IsUAPWith K f) (hc : c ≠ 0) :
   rintro ε hε
   simp only [ne_eq, hc, not_false_eq_true, uniformAP_smul]
   exact hf <| by positivity
-
-@[fun_prop]
-protected lemma IsUAPWith.translate (hf : IsUAPWith K f) : IsUAPWith K (τ_[t] f) := by
-  simpa [IsUAPWith] using hf
-
-lemma IsUAPWith.comp_mul_right (hf : IsUAPWith K f) : IsUAPWith K (fun x ↦ f (x * a)) := by
-  simpa [IsUAPWith] using hf
 
 /-- Almost periodicity is quantitatively preserved by precomposition with a group isomorphism. -/
 lemma IsUAPWith.comp_mulEquiv {φ : H ≃* G} (hf : IsUAPWith K f) : IsUAPWith K (f ∘ φ) := by
@@ -181,6 +184,74 @@ lemma IsUAPWith.of_tendstoUniformly {ι : Type*} {p : Filter ι} [p.NeBot] {u : 
   convert uniformAP_subset_of_forall_norm_sub_le (f := f) fun x ↦ by
     simpa [dist_eq_norm] using (hn x).le
   ring
+
+/-- If `f` is left almost-periodic with modulus `K`, then it is right almost-periodic with modulus
+`ε ↦ K (ε / 4) ^ K (ε / 4)`. -/
+protected lemma IsUAPWith.comp_unop (hf : IsUAPWith K f) :
+    IsUAPWith (fun ε ↦ K (ε / 4) ^ K (ε / 4)) (f ∘ MulOpposite.unop) := by
+  classical
+  intro ε hε
+  obtain ⟨F, hFM, hcov⟩ := hf (ε := ε / 4) (by positivity)
+  set K₀ := F⁻¹
+  have hK₀M : (#K₀ : ℝ) ≤ K (ε / 4) := by simpa [K₀]
+  have hK₀ a : ∃ k ∈ K₀, ∀ x, ‖f (a * x) - f (k * x)‖ ≤ ε / 4 := by
+    obtain ⟨φ, hφ, s, hs, hgs⟩ := hcov (Set.mem_univ a⁻¹)
+    refine ⟨φ⁻¹, Finset.inv_mem_inv (Finset.mem_coe.1 hφ), ?_⟩
+    simpa [← mul_inv_mem_uniformAP, eq_mul_inv_iff_mul_eq.2 hgs]
+  obtain ⟨K', hK'card, hK'⟩ :
+      ∃ K' : Finset G, #K' ≤ #K₀ ^ #K₀ ∧ ∀ a, ∃ k ∈ K', ∀ x, ‖f (x * a) - f (x * k)‖ ≤ ε := by
+    choose k hkK hk using hK₀
+    let p (a : G) (κ : K₀) : K₀ := ⟨k (κ * a), hkK _⟩
+    have key (a b d : G) (hab : p a = p b) : ‖f (d * a) - f (d * b)‖ ≤ ε := by
+      replace hab : k (k d * a) = k (k d * b) := congr($hab ⟨k d, hkK d⟩)
+      have ea : ‖f (k d * a) - f (k (k d * a))‖ ≤ ε / 4 := by simpa using hk (k d * a) 1
+      have eb : ‖f (k d * b) - f (k (k d * b))‖ ≤ ε / 4 := by simpa using hk (k d * b) 1
+      grw [norm_sub_le_norm_sub_add_norm_sub _ (f (k d * a)), hk,
+        norm_sub_le_norm_sub_add_norm_sub _ (f (k (k d * a))), ea, hab,
+        norm_sub_le_norm_sub_add_norm_sub _ (f (k d * b)), norm_sub_rev, eb, norm_sub_rev, hk]
+      apply le_of_eq
+      ring
+    let rep (v : K₀ → K₀) : G := if hv : ∃ a, p a = v then hv.choose else 1
+    have rep_spec a : p (rep (p a)) = p a := by
+      have hv : ∃ a', p a' = p a := ⟨a, rfl⟩; simp [rep, hv, hv.choose_spec]
+    exact ⟨Finset.univ.image rep, by grw [Finset.card_image_le]; simp,
+      fun a ↦ ⟨rep (p a), by simp, fun x ↦ key _ _ _ (rep_spec a).symm⟩⟩
+  refine ⟨(K'.image MulOpposite.op)⁻¹, ?_, ?_⟩
+  · grw [Finset.card_inv, Finset.card_image_le, hK'card, Nat.cast_pow, ← rpow_natCast, hK₀M, hK₀M]
+    · grw [← hK₀M, ← Nat.cast_nonneg]
+    · simp only [Nat.one_le_cast, Finset.one_le_card]
+      obtain ⟨k₀, hk₀, -⟩ := hK₀ 1
+      exact ⟨k₀, hk₀⟩
+  rintro a -
+  obtain ⟨k, hk, hka⟩ := hK' a⁻¹.unop
+  refine ⟨.op k⁻¹, by simpa, .op k * a, ?_, by simp⟩
+  rw [← inv_inv a, mul_inv_mem_uniformAP]
+  simpa [norm_sub_rev] using hka
+
+/-- If `f` is right almost-periodic with modulus `K`, then it is left almost-periodic with modulus
+`ε ↦ K (ε / 4) ^ K (ε / 4)`. -/
+protected lemma IsUAPWith.comp_op {K : ℝ → ℝ} {g : Gᵐᵒᵖ → E} (hg : IsUAPWith K g) :
+    IsUAPWith (fun ε ↦ K (ε / 4) ^ K (ε / 4)) (g ∘ .op) :=
+  IsUAPWith.comp_mulEquiv (φ := MulEquiv.opOp G) (IsUAPWith.comp_unop hg)
+
+lemma IsUAPWith.comp_mul_right (hf : IsUAPWith K f) : IsUAPWith K (fun x ↦ f (x * a)) := by
+  simpa [IsUAPWith] using hf
+
+lemma IsUAPWith.comp_mul_left (hf : IsUAPWith K f) :
+    IsUAPWith (fun ε ↦ K (ε / 16) ^ K (ε / 16) ^ (K (ε / 16) + 1)) (fun x ↦ f (a * x)) := by
+  refine hf.comp_unop.comp_mul_right (a := .op a).comp_op.mono fun ε hε ↦ ?_
+  · rw [rpow_add_one (hf.pos <| by positivity).ne', mul_comm, rpow_mul (hf.pos <| by positivity).le]
+    apply le_of_eq
+    ring_nf
+
+protected lemma IsUAPWith.comp_inv {K : ℝ → ℝ} (hf : IsUAPWith K f) :
+    IsUAPWith (fun ε ↦ K (ε / 4) ^ K (ε / 4)) (fun x ↦ f x⁻¹) :=
+  IsUAPWith.comp_mulEquiv (φ := MulEquiv.inv' G) (IsUAPWith.comp_unop hf)
+
+@[fun_prop]
+protected lemma IsUAPWith.translate (hf : IsUAPWith K f) :
+    IsUAPWith (fun ε ↦ K (ε / 16) ^ K (ε / 16) ^ (K (ε / 16) + 1)) (τ_[t] f) :=
+  hf.comp_mul_left
 
 variable (f) in
 /-- A function is uniformly almost periodic if its uniform `ε`-almost periods are syndetic for all
@@ -212,13 +283,6 @@ protected lemma IsUAP.smul (hf : IsUAP f) : IsUAP (c • f) := by
   · simp
   · obtain ⟨K, hf⟩ := hf.exists_isUAPWith
     exact (hf.smul hc).isUAP
-
-lemma IsUAP.comp_mul_right (hf : IsUAP f) : IsUAP (fun x ↦ f (x * a)) := by
-  obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.comp_mul_right.isUAP
-
-@[fun_prop]
-protected lemma IsUAP.translate (hf : IsUAP f) : IsUAP (τ_[x] f) := by
-  obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.translate.isUAP
 
 /-- Almost periodicity is preserved by precomposition with a group isomorphism. -/
 lemma IsUAP.comp_mulEquiv {H : Type*} [Group H] (φ : H ≃* G) (hf : IsUAP f) :
@@ -253,6 +317,33 @@ lemma IsUAP.of_tendstoUniformly {ι : Type*} {p : Filter ι} [p.NeBot] {u : ι �
   convert uniformAP_subset_of_forall_norm_sub_le (f := f) fun x ↦ by
     simpa [dist_eq_norm] using (hn x).le
   ring
+
+lemma IsUAP.comp_mul_right (hf : IsUAP f) : IsUAP (fun x ↦ f (x * a)) := by
+  obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.comp_mul_right.isUAP
+
+lemma IsUAP.comp_mul_left (hf : IsUAP f) : IsUAP (fun x ↦ f (a * x)) := by
+  obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.comp_mul_left.isUAP
+
+/-- A function is right almost-periodic iff it is left almost-periodic. -/
+@[simp] lemma isUAP_comp_unop : IsUAP (f ∘ MulOpposite.unop) ↔ IsUAP f where
+  mp hf := by obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.comp_op.isUAP
+  mpr hf := by obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.comp_unop.isUAP
+
+alias ⟨_, IsUAP.comp_unop⟩ := isUAP_comp_unop
+
+protected lemma IsUAP.comp_inv (hf : IsUAP f) : IsUAP (fun x ↦ f x⁻¹) := by
+  obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.comp_inv.isUAP
+
+@[simp] lemma isUAP_comp_inv : IsUAP (fun x ↦ f x⁻¹) ↔ IsUAP f where
+  mp hf := by simpa using hf.comp_inv
+  mpr := .comp_inv
+
+@[fun_prop] protected lemma IsUAP.translate (hf : IsUAP f) : IsUAP (τ_[x] f) := by
+  obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.translate.isUAP
+
+@[simp] lemma isUAP_translate : IsUAP (τ_[x] f) ↔ IsUAP f where
+  mp hf := by simpa using hf.translate (x := x⁻¹)
+  mpr := .translate
 
 section MetricSpace
 variable [MetricSpace G] [IsIsometricSMul Gᵐᵒᵖ G] {δ : ℝ → ℝ}
