@@ -15,15 +15,15 @@ open scoped ENNReal
 
 end EReal
 
-lemma ENat.ne_top_of_ennrealToEReal_toENNReal_le_realToEReal {n : ℕ∞} {K : ℝ}
+lemma ENat.ne_top_of_coe_le_real {n : ℕ∞} {K : ℝ}
     (h : (n : EReal) ≤ K) : n ≠ ⊤ := by
   intro htop
   rw [htop] at h
   exact not_le_of_gt (EReal.coe_lt_top K) h
 
-lemma ENat.natCast_toNat_le_of_ennrealToEReal_toENNReal_le_realToEReal {n : ℕ∞} {K : ℝ}
+lemma ENat.natCast_toNat_le_of_coe_le_real {n : ℕ∞} {K : ℝ}
     (h : (n : EReal) ≤ K) : n.toNat ≤ K := by
-  lift n to ℕ using ENat.ne_top_of_ennrealToEReal_toENNReal_le_realToEReal h
+  lift n to ℕ using ENat.ne_top_of_coe_le_real h
   simp only [ENat.toNat_coe]
   change ((n : ℝ) : EReal) ≤ K at h
   exact_mod_cast h

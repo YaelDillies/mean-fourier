@@ -135,7 +135,7 @@ lemma univ_closedBall_one (hε : 0 ≤ ε) :
     exact h_le.trans hF_cast
   · intro h
     have h_ne_top : coveringNumber ε.toNNReal (.univ : Set G) ≠ ⊤ :=
-      ENat.ne_top_of_ennrealToEReal_toENNReal_le_realToEReal h
+      ENat.ne_top_of_coe_le_real h
     set F' : Finset G := (finite_minimalCover (A := (.univ : Set G)) (ε := ε.toNNReal)).toFinset
     have hF'_card_top : (F'.card : ℕ∞) = coveringNumber ε.toNNReal (.univ : Set G) := by
       rw [← Set.encard_coe_eq_coe_finsetCard, Set.Finite.coe_toFinset, encard_minimalCover h_ne_top]
@@ -147,7 +147,7 @@ lemma univ_closedBall_one (hε : 0 ≤ ε) :
       have : F'.card = (coveringNumber ε.toNNReal (.univ : Set G)).toNat :=
         congrArg ENat.toNat hF'_card_top
       rw [this]
-      exact ENat.natCast_toNat_le_of_ennrealToEReal_toENNReal_le_realToEReal h
+      exact ENat.natCast_toNat_le_of_coe_le_real h
     · rw [Set.univ_subset_iff, CovBySMul.univ_subset_smul_closedBall_one_iff_isCover hε]
       have : ((F'.image (fun x ↦ x⁻¹ : G → G) : Set G)⁻¹) = (F' : Set G) := by simp
       exact this.symm ▸ h_cover
