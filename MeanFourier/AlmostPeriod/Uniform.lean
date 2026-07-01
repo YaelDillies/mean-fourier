@@ -309,12 +309,11 @@ protected lemma IsUAP.mul (hf : IsUAP f) (hg : IsUAP g) : IsUAP (f * g) := by
 end NormedRing
 
 open scoped Pointwise InnerProductSpace Finset in
-theorem UnitaryRepresentation.isUAP_inner {E : Type*} [NormedAddCommGroup E]
+lemma unitary_isUAP_cover_exists {E : Type*} [NormedAddCommGroup E]
     [InnerProductSpace ℂ E] [FiniteDimensional ℂ E]
-    (ρ : UnitaryRepresentation ℂ G E) (v w : E) :
-    IsUAP fun x ↦ ⟪ρ x v, w⟫_ℂ := by
+    (ρ : UnitaryRepresentation ℂ G E) (v w : E) (ε : ℝ) (hε : 0 < ε) :
+    ∃ F : Finset G, .univ ⊆ (F : Set G) • AP∞(fun x ↦ ⟪ρ x v, w⟫_ℂ, ε) := by
   classical
-  intro ε hε
   have : ProperSpace E := FiniteDimensional.proper ℂ E
   have horb : TotallyBounded (Set.range fun t : G ↦ ρ t w) := by
     refine (isCompact_closedBall (0 : E) ‖w‖).totallyBounded.subset ?_
@@ -327,7 +326,7 @@ theorem UnitaryRepresentation.isUAP_inner {E : Type*} [NormedAddCommGroup E]
   have hch : ∀ y ∈ c, ∃ t : G, ρ t w = y := fun y hy ↦ hcsub hy
   choose! tc htc using hch
   set F : Finset G := hcfin.toFinset.image tc
-  refine ⟨#F, F, le_rfl, ?_⟩
+  refine ⟨F, ?_⟩
   rintro x -
   have hx : ρ x w ∈ ⋃ y ∈ c, {z | (z, y) ∈ {p : E × E | dist p.1 p.2 < ε'}} :=
     hccover ⟨x, rfl⟩
@@ -366,3 +365,29 @@ theorem UnitaryRepresentation.isUAP_inner {E : Type*} [NormedAddCommGroup E]
           refine mul_le_of_le_one_right hε.le ?_
           exact div_le_one_of_le₀ (by linarith) (by positivity)
   · exact mul_inv_cancel_left (tc y) x
+
+noncomputable def unitary_isUAP_bound {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℂ E] [FiniteDimensional ℂ E]
+    (ρ : UnitaryRepresentation ℂ G E) (v w : E) (ε : ℝ) : ℝ :=
+  if h : 0 < ε then
+    (Classical.choose (unitary_isUAP_cover_exists ρ v w ε h)).card
+  else 0
+
+open scoped Pointwise InnerProductSpace Finset in
+theorem UnitaryRepresentation.isUAPWith_inner {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℂ E] [FiniteDimensional ℂ E]
+    (ρ : UnitaryRepresentation ℂ G E) (v w : E) :
+    IsUAPWith (unitary_isUAP_bound ρ v w) (fun x ↦ ⟪ρ x v, w⟫_ℂ) := by
+  intro ε hε
+  simp only [unitary_isUAP_bound, hε, dite_true]
+  set F := Classical.choose (unitary_isUAP_cover_exists ρ v w ε hε)
+  have hF : .univ ⊆ (F : Set G) • AP∞(fun x ↦ ⟪ρ x v, w⟫_ℂ, ε) :=
+    Classical.choose_spec (unitary_isUAP_cover_exists ρ v w ε hε)
+  exact ⟨F, le_rfl, hF⟩
+
+open scoped Pointwise InnerProductSpace Finset in
+theorem UnitaryRepresentation.isUAP_inner {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℂ E] [FiniteDimensional ℂ E]
+    (ρ : UnitaryRepresentation ℂ G E) (v w : E) :
+    IsUAP fun x ↦ ⟪ρ x v, w⟫_ℂ :=
+  (isUAPWith_inner ρ v w).isUAP
