@@ -1,6 +1,7 @@
 module
 
 public import Mathlib.Analysis.Normed.Group.Bounded
+public import Mathlib.Analysis.Normed.Group.Real
 public import MeanFourier.Mathlib.Topology.Bornology.Basic
 
 public section
@@ -17,3 +18,8 @@ alias ⟨Bornology.IsBddFun.exists_forall_norm_le, _⟩ := isBddFun_iff_exists_f
 
 @[to_additive existing Bornology.IsBddFun.exists_forall_norm_le]
 alias ⟨Bornology.IsBddFun.exists_forall_norm_le', _⟩ := isBddFun_iff_exists_forall_norm_le'
+
+lemma isBddFun_iff_exists_forall_abs_le {f : α → ℝ} : IsBddFun f ↔ ∃ C, ∀ x, |f x| ≤ C :=
+  isBddFun_iff_exists_forall_norm_le
+
+alias ⟨Bornology.IsBddFun.exists_forall_abs_le, _⟩ := isBddFun_iff_exists_forall_abs_le
