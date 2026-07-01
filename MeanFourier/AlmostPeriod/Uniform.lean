@@ -31,7 +31,7 @@ public section
 open Bornology Metric
 open scoped Pointwise
 
-variable {𝕜 G R E : Type*} [RCLike 𝕜] [Group G] {K L : ℝ → ℝ} {a x t : G} {c : 𝕜}
+variable {𝕜 G H R E : Type*} [RCLike 𝕜] [Group G] [Group H] {K L : ℝ → ℝ} {a x t : G} {c : 𝕜}
 
 section NormedAddCommGroup
 variable [NormedAddCommGroup E] [NormedSpace 𝕜 E] {f g : G → E} {z : E} {ε : ℝ}
@@ -146,8 +146,24 @@ protected lemma IsUAPWith.smul (hf : IsUAPWith K f) (hc : c ≠ 0) :
 protected lemma IsUAPWith.translate (hf : IsUAPWith K f) : IsUAPWith K (τ_[t] f) := by
   simpa [IsUAPWith] using hf
 
-protected lemma IsUAPWith.comp_mul_right (hf : IsUAPWith K f) :
-    IsUAPWith K (fun x ↦ f (x * a)) := by simpa [IsUAPWith] using hf
+lemma IsUAPWith.comp_mul_right (hf : IsUAPWith K f) : IsUAPWith K (fun x ↦ f (x * a)) := by
+  simpa [IsUAPWith] using hf
+
+/-- Almost periodicity is quantitatively preserved by precomposition with a group isomorphism. -/
+lemma IsUAPWith.comp_mulEquiv {φ : H ≃* G} (hf : IsUAPWith K f) : IsUAPWith K (f ∘ φ) := by
+  classical
+  intro ε hε
+  rw [uniformAP_comp_mulEquiv]
+  obtain ⟨F, hFK, hcov⟩ := hf hε
+  refine ⟨F.image φ.symm, by grw [Finset.card_image_le, hFK], fun h _ ↦ ?_⟩
+  obtain ⟨a, ha, s, hs, hgs⟩ := Set.mem_smul.1 (hcov (Set.mem_univ (φ h)))
+  rw [smul_eq_mul] at hgs
+  exact ⟨φ.symm a, Finset.mem_image_of_mem _  ha, φ.symm s, by simpa using hs, by
+    simp [← map_mul, hgs]⟩
+
+@[simp] lemma isUAPWith_comp_mulEquiv {φ : H ≃* G} : IsUAPWith K (f ∘ φ) ↔ IsUAPWith K f where
+  mp hf := by simpa [Function.comp_assoc] using hf.comp_mulEquiv (φ := φ.symm)
+  mpr := .comp_mulEquiv
 
 /-- Almost periodicity is quantitatively preserved by uniform limits along any (nontrivial) filter.
 -/
@@ -192,25 +208,20 @@ protected lemma IsUAP.smul (hf : IsUAP f) : IsUAP (c • f) := by
   · obtain ⟨K, hf⟩ := hf.exists_isUAPWith
     exact (hf.smul hc).isUAP
 
-/-- Almost periodicity is preserved by precomposition with a group isomorphism. -/
-protected lemma IsUAP.comp_mulEquiv {H : Type*} [Group H] (φ : H ≃* G) (hf : IsUAP f) :
-    IsUAP (f ∘ φ) := by
-  classical
-  intro ε hε
-  obtain ⟨K, F, hFK, hcov⟩ := hf hε
-  refine ⟨K, F.image φ.symm, by grw [Finset.card_image_le, hFK], fun h _ ↦ ?_⟩
-  obtain ⟨a, ha, s, hs, hgs⟩ := Set.mem_smul.1 (hcov (Set.mem_univ (φ h)))
-  rw [smul_eq_mul] at hgs
-  rw [uniformAP_comp_mulEquiv]
-  exact ⟨φ.symm a, Finset.mem_image_of_mem _  ha, φ.symm s, by simpa using hs, by
-    simp [← map_mul, hgs]⟩
-
-protected lemma IsUAP.comp_mul_right (hf : IsUAP f) : IsUAP (fun x ↦ f (x * a)) := by
+lemma IsUAP.comp_mul_right (hf : IsUAP f) : IsUAP (fun x ↦ f (x * a)) := by
   obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.comp_mul_right.isUAP
 
 @[fun_prop]
 protected lemma IsUAP.translate (hf : IsUAP f) : IsUAP (τ_[x] f) := by
   obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.translate.isUAP
+
+/-- Almost periodicity is preserved by precomposition with a group isomorphism. -/
+lemma IsUAP.comp_mulEquiv {H : Type*} [Group H] (φ : H ≃* G) (hf : IsUAP f) :
+    IsUAP (f ∘ φ) := by
+  obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.comp_mulEquiv.isUAP
+
+@[simp] lemma isUAP_comp_mulEquiv {φ : H ≃* G} : IsUAP (f ∘ φ) ↔ IsUAP f := by
+  simp [isUAP_iff_exists_isUAPWith]
 
 @[fun_prop]
 protected lemma IsUAP.isBddFun (hf : IsUAP f) : IsBddFun f := by
