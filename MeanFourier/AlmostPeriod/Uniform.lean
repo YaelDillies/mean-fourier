@@ -31,7 +31,7 @@ public section
 open Bornology Metric
 open scoped Pointwise
 
-variable {𝕜 G H R E : Type*} [RCLike 𝕜] [Group G] [Group H] {K L : ℝ → ℝ} {a x t : G} {c : 𝕜}
+variable {𝕜 G H R E : Type*} [RCLike 𝕜] [Group G] [Group H] {K L : ℝ → ℝ} {a b x t : G} {c : 𝕜}
 
 section NormedAddCommGroup
 variable [NormedAddCommGroup E] [NormedSpace 𝕜 E] {f g : G → E} {z : E} {ε : ℝ}
@@ -52,6 +52,12 @@ lemma uniformAP_inv : AP∞(f, ε)⁻¹ = AP∞(f, ε) := by
 
 lemma inv_mem_uniformAP (ht : t ∈ AP∞(f, ε)) : t⁻¹ ∈ AP∞(f, ε) := by
   rw [← uniformAP_inv]; exact Set.inv_mem_inv.2 ht
+
+/-- `a * b⁻¹` is an `ε`-almost-period of `f` iff the two translatess `f (a * ·)` and `f (b * ·)` are
+at most `ε` away in L^∞ norm. -/
+lemma mul_inv_mem_uniformAP : a * b⁻¹ ∈ AP∞(f, ε) ↔ ∀ x, ‖f (a * x) - f (b * x)‖ ≤ ε := by
+  simp only [mem_uniformAP, mul_inv_rev, inv_inv]
+  exact ((Equiv.mulLeft a).forall_congr <| by simp [norm_sub_rev]).symm
 
 @[to_fun (attr := simp) uniformAP_fun_const]
 lemma uniformAP_const (hε : 0 ≤ ε) : AP∞(Function.const G z, ε) = .univ := by simp [uniformAP, hε]
