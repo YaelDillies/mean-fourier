@@ -75,6 +75,16 @@ lemma uniformAP_translate : AP∞(τ_[x] f, ε) = AP∞(f, ε) := by
   sorry
   -- ext t; exact (Equiv.mulRight x).symm.forall_congr <| by simp
 
+/-- If `f` is `δ`-uniformly close to `g`, every `ε`-almost period of `g` is an `(ε + 2δ)`-almost
+period of `f`. -/
+lemma uniformAP_subset_of_forall_norm_sub_le {g : G → E} {δ : ℝ} (hfg : ∀ x, ‖f x - g x‖ ≤ δ) :
+    AP∞(g, ε) ⊆ AP∞(f, ε + 2 * δ) := by
+  intro t ht x
+  grw [norm_sub_le_norm_sub_add_norm_sub _ (g x), norm_sub_le_norm_sub_add_norm_sub _ (g (t⁻¹ * x)),
+    hfg _, ht x, norm_sub_rev, hfg x]
+  apply le_of_eq
+  ring
+
 variable (K f) in
 /-- For a "modulus of almost-periodicity" `K : ℝ → ℝ`,a function is uniformly `K`-almost-periodic
 if its uniform `ε`-almost periods are `K_ε`-syndetic for all `ε > 0`.
@@ -138,6 +148,18 @@ protected lemma IsUAPWith.translate (hf : IsUAPWith K f) : IsUAPWith K (τ_[t] f
 
 protected lemma IsUAPWith.comp_mul_right (hf : IsUAPWith K f) :
     IsUAPWith K (fun x ↦ f (x * a)) := by simpa [IsUAPWith] using hf
+
+/-- Almost periodicity is quantitatively preserved by uniform limits along any (nontrivial) filter.
+-/
+lemma IsUAPWith.of_tendstoUniformly {ι : Type*} {p : Filter ι} [p.NeBot] {u : ι → G → E}
+    (hu : ∀ᶠ n in p, IsUAPWith K (u n)) (h : TendstoUniformly u f p) :
+    IsUAPWith (fun ε ↦ K (ε / 3)) f := by
+  intro ε hε
+  obtain ⟨n, hn, hu⟩ := ((Metric.tendstoUniformly_iff.1 h (ε / 3) (by positivity)).and hu).exists
+  refine (hu <| by positivity).subset_right ?_
+  convert uniformAP_subset_of_forall_norm_sub_le (f := f) fun x ↦ by
+    simpa [dist_eq_norm] using (hn x).le
+  ring
 
 variable (f) in
 /-- A function is uniformly almost periodic if its uniform `ε`-almost periods are syndetic for all
@@ -204,6 +226,17 @@ protected lemma IsUAP.isBddFun (hf : IsUAP f) : IsBddFun f := by
   have hy : t⁻¹ * g⁻¹ = y := by rw [← mul_inv_rev, hgt, inv_inv]
   refine Set.mem_biUnion hg ?_
   simpa [Metric.mem_closedBall, dist_eq_norm, hy] using ht g⁻¹
+
+/-- Almost periodicity is preserved by uniform limits along any (nontrivial) filter. -/
+lemma IsUAP.of_tendstoUniformly {ι : Type*} {p : Filter ι} [p.NeBot] {u : ι → G → E}
+    (hu : ∀ᶠ n in p, IsUAP (u n)) (h : TendstoUniformly u f p) : IsUAP f := by
+  intro ε hε
+  obtain ⟨n, hn, hu⟩ := ((Metric.tendstoUniformly_iff.1 h (ε / 3) (by positivity)).and hu).exists
+  obtain ⟨K, hu⟩ := hu (ε := ε / 3) (by positivity)
+  refine ⟨K, hu.subset_right ?_⟩
+  convert uniformAP_subset_of_forall_norm_sub_le (f := f) fun x ↦ by
+    simpa [dist_eq_norm] using (hn x).le
+  ring
 
 section MetricSpace
 variable [MetricSpace G] [IsIsometricSMul Gᵐᵒᵖ G] {δ : ℝ → ℝ}
