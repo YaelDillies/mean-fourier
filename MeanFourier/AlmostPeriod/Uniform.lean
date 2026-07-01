@@ -46,12 +46,11 @@ def uniformAP : Set G := {t | ∀ x, ‖f (t⁻¹ * x) - f x‖ ≤ ε}
 lemma mem_uniformAP : t ∈ AP∞(f, ε) ↔ ∀ x, ‖f (t⁻¹ * x) - f x‖ ≤ ε := .rfl
 
 @[simp]
-lemma uniformAP_inv : AP∞(f, ε)⁻¹ = AP∞(f, ε) := by
-  ext t
-  exact (Equiv.mulLeft t).forall_congr (by simp [norm_sub_rev])
+lemma inv_mem_uniformAP : t⁻¹ ∈ AP∞(f, ε) ↔ t ∈ AP∞(f, ε) :=
+  (Equiv.mulLeft t).forall_congr (by simp [norm_sub_rev])
 
-lemma inv_mem_uniformAP (ht : t ∈ AP∞(f, ε)) : t⁻¹ ∈ AP∞(f, ε) := by
-  rw [← uniformAP_inv]; exact Set.inv_mem_inv.2 ht
+@[simp]
+lemma uniformAP_inv : AP∞(f, ε)⁻¹ = AP∞(f, ε) := by ext t; exact inv_mem_uniformAP
 
 /-- `a * b⁻¹` is an `ε`-almost-period of `f` iff the two translatess `f (a * ·)` and `f (b * ·)` are
 at most `ε` away in L^∞ norm. -/
