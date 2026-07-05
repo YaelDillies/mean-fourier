@@ -37,3 +37,18 @@ protected lemma IsAlmostConvergent.const : IsAlmostConvergent (Function.const G 
 
 @[simp, fun_prop]
 protected lemma IsAlmostConvergent.zero : IsAlmostConvergent (0 : G → E) := .const
+
+namespace IsAlmostConvergent
+
+noncomputable def mean (hf : IsAlmostConvergent f) : E :=
+  hf.existsUnique_const_mem_closure_convexHull.choose
+
+lemma eq_mean (hf : IsAlmostConvergent f)
+    (h : Function.const G z ∈ closure (convexHull ℝ (Set.range fun x ↦ τ_[x] f))) :
+    z = hf.mean := hf.existsUnique_const_mem_closure_convexHull.choose_spec.2 z h
+
+lemma exists_norm_le (hf : IsAlmostConvergent f) : ∃ C : ℝ, ∀ u, ‖f u‖ ≤ C :=
+  let ⟨C, hC⟩ := hf.isBddFun.exists_norm_le
+  ⟨C, fun u ↦ hC (f u) ⟨u, rfl⟩⟩
+
+end IsAlmostConvergent
