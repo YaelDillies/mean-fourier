@@ -125,7 +125,7 @@ protected lemma CovBySMul.iInter {ι : Type*} {A : ι → Set G} {s : Finset ι}
 /-- Covering `B` by `K` right translates of `A` is the same as covering `B⁻¹` by `K` left translates
 of `A⁻¹`. -/
 lemma covBySMul_mulOpposite_iff : CovBySMul Gᵐᵒᵖ K A B ↔ CovBySMul G K A⁻¹ B⁻¹ := by
-  refine (Equiv.Finset.congr <| (Equiv.inv G).trans MulOpposite.opEquiv).symm.exists_congr' ?_
+  refine ((Equiv.inv G).trans MulOpposite.opEquiv).finsetCongr.symm.exists_congr' ?_
   simp [Set.inv_subset, ← Function.comp_def _ (·⁻¹), Set.image_comp, -MulOpposite.op_inv,
     Set.image_op_smul]
 
