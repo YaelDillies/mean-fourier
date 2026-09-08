@@ -9,7 +9,4 @@ variable {R M : Type*} [Semiring R] [TopologicalSpace M] [AddCommMonoid M] [Modu
 
 @[simp] lemma toLinearEquiv_one : toLinearEquiv (1 : M ≃L[R] M) = 1 := rfl
 
-@[simp] lemma toLinearEquiv_mul (e e' : M ≃L[R] M) :
-    toLinearEquiv (e * e') = toLinearEquiv e * toLinearEquiv e' := rfl
-
 end ContinuousLinearEquiv
