@@ -118,10 +118,9 @@ private lemma bddAbove_range :
     and_imp, forall_comm (α := ℕ), forall_apply_eq_imp_iff₂]
   rintro A hA hAn
   grw [← hAn, ← Set.ncard_powerset _ hA]
-  · gcongr
-    · exact hA.powerset
-    · grind
-  · norm_num
+  gcongr
+  · exact hA.powerset
+  · grind
 
 private lemma finite_image_inter (hA : A.Finite) : ((A ∩ ·) '' 𝒜).Finite :=
   hA.powerset.subset (by grind)
