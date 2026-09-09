@@ -27,7 +27,7 @@ rev = "v4.34.0-rc2"
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4.git"
-rev = "5845c9e4561c0e6e233df32e89da1ecd4308e5e1"
+rev = "9a1338a6a1a8eb784150b180bee61950c418eca9"
 
 [[lean_lib]]
 name = "MeanFourier"
