@@ -335,8 +335,11 @@ protected lemma IsUAP.isBddFun (hf : IsUAP f) : IsBddFun f := by
   refine ((isBounded_biUnion F.finite_toSet).2 fun g _ ↦
     isBounded_closedBall (x := f g⁻¹) (r := 1)).subset ?_
   rintro _ ⟨y, rfl⟩
-  obtain ⟨g, hg, ht⟩ := Set.mem_smul_iff_inv_smul_mem.1 (hsub (Set.mem_univ y⁻¹))
+  obtain ⟨g, hg, t, ht, hgt⟩ := Set.mem_smul.1 (hsub (Set.mem_univ y⁻¹))
   refine Set.mem_biUnion hg ?_
+  rw [smul_eq_mul] at hgt
+  have hy : y = t⁻¹ * g⁻¹ := by rw [← inv_inv y, ← hgt, mul_inv_rev]
+  rw [hy]
   simpa [Metric.mem_closedBall, dist_eq_norm] using ht g⁻¹
 
 /-! #### Operations on the domain -/

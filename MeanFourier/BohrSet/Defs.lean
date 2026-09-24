@@ -110,6 +110,12 @@ instance instCoeSort : CoeSort (BohrSet G) (Type _) := ⟨Elem⟩
 lemma mem_chordSet_iff_nnnorm_ewidth :
     x ∈ B.chordSet ↔ ∀ ψ, ‖1 - (ψ x : ψ.E →L[ℂ] ψ.E)‖₊ ≤ B.ewidth ψ := .rfl
 
+lemma _root_.UnitaryDual.nnnorm_one_sub_map_inv_mul :
+    ‖1 - (ψ (x⁻¹ * y) : ψ.E →L[ℂ] ψ.E)‖₊ = ‖(ψ x : ψ.E →L[ℂ] ψ.E) - ψ y‖₊ := by
+  rw [← ContinuousLinearMap.opNNNorm_linearIsometryEquiv_mul (ψ x)]
+  simp only [mul_sub, ← ContinuousLinearEquiv.toContinuousLinearMap_mul,
+    ← LinearIsometryEquiv.toContinuousLinearEquiv_mul, ← map_mul, mul_one, mul_inv_cancel_left]
+
 lemma mem_chordSet_iff_nnnorm_width :
     x ∈ B.chordSet ↔ ∀ ⦃ψ⦄, ψ ∈ B.frequencies → ‖1 - (ψ x : ψ.E →L[ℂ] ψ.E)‖₊ ≤ B.width ψ := by
   refine forall_congr' fun ψ => ?_
@@ -258,7 +264,11 @@ noncomputable def dimRank (B : BohrSet G) : ℕ := ∑ ψ ∈ B.frequencies, Mod
 
 /-- The squared dimension rank of a Bohr set is the sum of the squares of the dimensions of its
 frequencies. -/
-noncomputable def dimSqRank (B : BohrSet G) : ℕ := ∑ ψ ∈ B.frequencies, Module.finrank ℂ ψ.E ^ 2
+@[expose] noncomputable def dimSqRank (B : BohrSet G) : ℕ :=
+  ∑ ψ ∈ B.frequencies, Module.finrank ℂ ψ.E ^ 2
+
+lemma dimSqRank_eq :
+    B.dimSqRank = ∑ ψ ∈ B.frequencies, Module.finrank ℂ ψ.E ^ 2 := rfl
 
 lemma cardRank_le_dimRank : B.cardRank ≤ B.dimRank := by
   rw [← card_frequencies, Finset.card_eq_sum_ones, dimRank]
@@ -307,6 +317,7 @@ noncomputable instance instSMul : SMul ℝ (BohrSet G) where
 @[simp] lemma frequencies_smul (ρ : ℝ) (B : BohrSet G) : (ρ • B).frequencies = B.frequencies := rfl
 @[simp] lemma cardRank_smul (ρ : ℝ) (B : BohrSet G) : (ρ • B).cardRank = B.cardRank := by rfl
 @[simp] lemma dimRank_smul (ρ : ℝ) (B : BohrSet G) : (ρ • B).dimRank = B.dimRank := by rfl
+@[simp] lemma dimSqRank_smul (ρ : ℝ) (B : BohrSet G) : (ρ • B).dimSqRank = B.dimSqRank := rfl
 
 @[simp] lemma ewidth_smul (ρ : ℝ) (B : BohrSet G) (ψ) :
     (ρ • B).ewidth ψ = if ψ ∈ B.frequencies then Real.nnabs ρ * B.ewidth ψ else ⊤ := rfl
@@ -323,26 +334,28 @@ noncomputable instance instMulAction : MulAction ℝ (BohrSet G) where
   one_smul B := by ext <;> simp
   mul_smul ρ φ B := by ext <;> simp [mul_assoc]
 
+lemma smul_le_smul_of_nonneg_right {ρ₁ ρ₂ : ℝ} (h₁ : 0 ≤ ρ₁) (h : ρ₁ ≤ ρ₂) :
+    ρ₁ • B ≤ ρ₂ • B := by
+  intro ψ
+  simp only [ewidth_smul]
+  split_ifs
+  · gcongr
+    simpa [Real.nnabs_of_nonneg h₁, Real.nnabs_of_nonneg (h₁.trans h)]
+      using Real.toNNReal_le_toNNReal h
+  · rfl
+
 end smul
 
 -- Note it is not sufficient to say B.width = 0.
-lemma eq_singleton_one_of_ewidth_eq_zero {B : BohrSet G} (h : B.ewidth = 0) :
+lemma chordSet_eq_singleton_one_of_ewidth_eq_zero [Finite G] (h : B.ewidth = 0) :
     B.chordSet = {1} := by
   rw [Set.eq_singleton_iff_unique_mem]
-  simp only [mem_chordSet_iff_nnnorm_width, map_one,
-    LinearIsometryEquiv.toContinuousLinearEquiv_one,
-    ContinuousLinearEquiv.toContinuousLinearMap_one, sub_self, nnnorm_zero, zero_le, implies_true,
-    true_and]
-  intro x hx
-  by_contra!
-  sorry
-  -- rw [←AddChar.exists_apply_ne_zero] at this
-  -- obtain ⟨ψ, hψ⟩ := this
-  -- apply hψ
-  -- have hψ' : ψ ∈ B.frequencies := by simp [B.mem_frequencies, h]
-  -- specialize hx hψ'
-  -- rwa [B.width_def, h, Pi.zero_apply, ENNReal.toNNReal_zero, nonpos_iff_eq_zero, nnnorm_eq_zero,
-  --   sub_eq_zero, eq_comm] at hx
+  refine ⟨one_mem_chordSet, fun x hx ↦ ?_⟩
+  by_contra hx_ne
+  obtain ⟨ψ, hψ⟩ := UnitaryDual.exists_apply_ne_one hx_ne
+  have : 1 = (ψ x : ψ.E →L[ℂ] ψ.E) := by
+    simpa [h, nonpos_iff_eq_zero, ENNReal.coe_eq_zero, nnnorm_eq_zero, sub_eq_zero] using hx ψ
+  exact hψ (DFunLike.ext _ _ fun v ↦ (DFunLike.congr_fun this v).symm)
 
 lemma chordSet_eq_top_of_two_le_width {B : BohrSet G} (h : ∀ ψ, 2 ≤ B.width ψ) :
     B.chordSet = Set.univ := by
@@ -355,6 +368,10 @@ lemma chordSet_eq_top_of_two_le_width {B : BohrSet G} (h : ∀ ψ, 2 ≤ B.width
   fun _ hx ψ => (hx ψ).trans (h ψ)
 
 lemma chordSet_monotone : Monotone (chordSet : BohrSet G → Set G) := fun _ _ => chordSet_mono
+
+lemma chordSet_smul_subset_smul_of_nonneg_right {ρ₁ ρ₂ : ℝ} (h₁ : 0 ≤ ρ₁) (h : ρ₁ ≤ ρ₂) :
+    (ρ₁ • B).chordSet ⊆ (ρ₂ • B).chordSet :=
+  chordSet_mono (smul_le_smul_of_nonneg_right h₁ h)
 
 open Pointwise
 
