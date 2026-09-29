@@ -36,7 +36,7 @@ public import MeanFourier.Mathlib.Data.Set.Basic
 public import MeanFourier.Mathlib.Data.Set.Card
 public import MeanFourier.Mathlib.Data.Set.Prod
 public import MeanFourier.Mathlib.MeasureTheory.Group.FoelnerFilter
-public import MeanFourier.Mathlib.Topology.Algebra.Module.Equiv
+public import MeanFourier.Mathlib.Topology.Algebra.Module.Equiv.Basic
 public import MeanFourier.Mathlib.Topology.Bornology.Basic
 public import MeanFourier.Mathlib.Topology.MetricSpace.Cover
 public import MeanFourier.Mathlib.Topology.MetricSpace.CoveringNumbers
