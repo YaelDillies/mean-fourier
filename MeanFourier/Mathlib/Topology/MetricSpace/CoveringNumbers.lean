@@ -6,6 +6,8 @@ public import MeanFourier.Mathlib.Data.Set.Prod
 public import MeanFourier.Mathlib.Topology.MetricSpace.Cover
 public import MeanFourier.Mathlib.Topology.MetricSpace.MetricSeparated
 
+public import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
+
 open scoped NNReal ENNReal
 
 public section
@@ -121,6 +123,11 @@ lemma externalCoveringNumber_prod_le :
   field_simp
   rfl
 
+lemma coveringNumber_le_externalCoveringNumber_half :
+    coveringNumber ε s ≤ externalCoveringNumber (ε / 2) s := by
+  nth_rw 1 [← mul_div_cancel₀ ε two_ne_zero]
+  exact coveringNumber_two_mul_le_externalCoveringNumber (ε / 2) s
+
 variable {ι : Type*} [Fintype ι] {X : ι → Type*} [∀ i, PseudoEMetricSpace (X i)]
   {s : ∀ i, Set (X i)}
 
@@ -149,15 +156,109 @@ lemma packingNumber_pi_univ_le :
     field_simp
     rfl
   · gcongr with i
-    exact coveringNumber_le_packingNumber ..
+    exact coveringNumber_le_packingNumber (ε / 2) (s i)
 
 -- TODO: Remove the `/ 2` by introducing the external version of `minimalCover`.
 lemma externalCoveringNumber_pi_univ_le :
     externalCoveringNumber ε (.pi .univ s) ≤ ∏ i, externalCoveringNumber (ε / 2) (s i) := by
-  grw [externalCoveringNumber_le_coveringNumber, coveringNumber_pi_univ_le]
-  gcongr with i
-  grw [← coveringNumber_two_mul_le_externalCoveringNumber]
+  trans ∏ i, coveringNumber ε (s i)
+  · exact (externalCoveringNumber_le_coveringNumber ε (.pi .univ s)).trans
+      coveringNumber_pi_univ_le
+  · gcongr with i
+    exact coveringNumber_le_externalCoveringNumber_half
+
+lemma div_pow_add_half (R : ℝ) (ε : ℝ) (k : ℕ) :
+    (R + ε / 2) ^ k / (ε / 2) ^ k = ((2 * R + ε) / ε) ^ k := by
+  rw [← div_pow]
+  congr 1
   field_simp
-  rfl
+
+lemma IsSeparated.pairwiseDisjoint_closedBall {α : Type*} [PseudoMetricSpace α] {s : Set α}
+    (hsep : IsSeparated ε s) {F : Set α} (hF : F ⊆ s) :
+    F.PairwiseDisjoint fun c ↦ closedBall c (ε / 2) := by
+  intro a ha b hb hab
+  have : (ε : ℝ) < dist a b := by
+    simpa [edist_dist] using hsep (hF ha) (hF hb) hab
+  exact closedBall_disjoint_closedBall ((add_halves (ε : ℝ)).symm ▸ this)
+
+lemma iUnion_closedBall_subset_closedBall {α : Type*} [PseudoMetricSpace α] {x : α} {R r : ℝ}
+    {s : Set α} (hs : s ⊆ closedBall x R) :
+    (⋃ c ∈ s, closedBall c r) ⊆ closedBall x (R + r) := by
+  refine Set.iUnion₂_subset fun c hc ↦ closedBall_subset_closedBall' ?_
+  have : dist c x ≤ R := mem_closedBall.1 (hs hc)
+  linarith
+
+section VolumetricBound
+open Module MeasureTheory
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {x : E} {R : ℝ} {ε : ℝ≥0} {C : Set E}
+
+lemma card_mul_addHaar_closedBall_center {E : Type*} [NormedAddCommGroup E] [MeasurableSpace E]
+    [BorelSpace E] (μ : Measure E) [Measure.IsAddHaarMeasure μ] (F : Finset E) (r : ℝ) :
+    (F.card : ℝ≥0∞) * μ (closedBall 0 r) =
+      ∑ c ∈ F, μ (closedBall c r) := by
+  rw [Finset.sum_congr rfl fun c _ ↦ μ.addHaar_closedBall_center c r,
+    Finset.sum_const, nsmul_eq_mul]
+
+lemma card_le_of_card_mul_volume_le [MeasurableSpace E] (μ : Measure E) [BorelSpace E]
+    [Measure.IsAddHaarMeasure μ] (hε : 0 < ε) (hR : 0 ≤ R) (F : Finset E)
+    (h : (F.card : ℝ≥0∞) * μ (closedBall 0 (ε / 2)) ≤
+      μ (closedBall x (R + ε / 2))) :
+    (F.card : ℝ) ≤ ((2 * R + ε) / ε) ^ finrank ℝ E := by
+  rw [μ.addHaar_closedBall' x (add_nonneg hR (div_nonneg (NNReal.coe_nonneg ε) zero_le_two)),
+    μ.addHaar_closedBall' (0 : E) (div_nonneg (NNReal.coe_nonneg ε) zero_le_two),
+    ← mul_assoc,
+    ENNReal.mul_le_mul_iff_left (measure_closedBall_pos μ 0 one_pos).ne'
+      measure_closedBall_lt_top.ne,
+    ← ENNReal.ofReal_natCast, ← ENNReal.ofReal_mul (Nat.cast_nonneg F.card),
+    ENNReal.ofReal_le_ofReal_iff
+      (pow_nonneg (add_nonneg hR (div_nonneg (NNReal.coe_nonneg ε) zero_le_two)) _)] at h
+  exact ((le_div_iff₀ (pow_pos (half_pos (NNReal.coe_pos.mpr hε)) _)).mpr h).trans_eq
+    (div_pow_add_half R ε (finrank ℝ E))
+
+lemma IsSeparated.finset_card_le_of_subset_closedBall {F : Finset E}
+    (hsep : IsSeparated ε (F : Set E)) (hε : 0 < ε) (hR : 0 ≤ R)
+    (hF : (F : Set E) ⊆ closedBall x R) :
+    (F.card : ℝ) ≤ ((2 * R + ε) / ε) ^ finrank ℝ E := by
+  classical
+  borelize E
+  set μ : Measure E := (Module.finBasis ℝ E).addHaar
+  have : (F : Set E).PairwiseDisjoint fun c ↦ closedBall c (ε / 2) :=
+    hsep.pairwiseDisjoint_closedBall subset_rfl
+  have : (F.card : ℝ≥0∞) * μ (closedBall 0 (ε / 2)) ≤
+      μ (closedBall x (R + ε / 2)) :=
+    calc (F.card : ℝ≥0∞) * μ (closedBall 0 (ε / 2))
+        = ∑ c ∈ F, μ (closedBall c (ε / 2)) :=
+          card_mul_addHaar_closedBall_center μ F (ε / 2)
+      _ = μ (⋃ c ∈ F, closedBall c (ε / 2)) :=
+          (measure_biUnion_finset this fun c _ ↦ measurableSet_closedBall).symm
+      _ ≤ μ (closedBall x (R + ε / 2)) :=
+          measure_mono (iUnion_closedBall_subset_closedBall hF)
+  exact card_le_of_card_mul_volume_le μ hε hR F this
+
+lemma IsSeparated.encard_le_of_subset_closedBall (hsep : IsSeparated ε C) (hε : 0 < ε)
+    (hR : 0 ≤ R) (hC : C ⊆ closedBall x R) :
+    C.encard ≤ ⌊((2 * R + ε) / ε) ^ finrank ℝ E⌋₊ := by
+  by_contra h
+  rw [not_le] at h
+  have : (⌊((2 * R + ε) / ε) ^ finrank ℝ E⌋₊ : ℕ∞) + 1 ≤ C.encard :=
+    (ENat.add_one_le_iff (ENat.coe_ne_top _)).2 h
+  obtain ⟨D, hDC, hD⟩ := Set.exists_subset_encard_eq this
+  have hD_finite : D.Finite := Set.finite_of_encard_eq_coe hD
+  have hD_card : hD_finite.toFinset.card = ⌊((2 * R + ε) / ε) ^ finrank ℝ E⌋₊.succ :=
+    ENat.coe_inj.1 (hD_finite.encard_eq_coe_toFinset_card.symm.trans hD)
+  have hD_subset : (hD_finite.toFinset : Set E) ⊆ C := hD_finite.coe_toFinset.symm ▸ hDC
+  exact Nat.not_succ_le_self ⌊((2 * R + ε) / ε) ^ finrank ℝ E⌋₊
+    (Nat.le_floor (hD_card ▸
+      IsSeparated.finset_card_le_of_subset_closedBall (hsep.mono hD_subset)
+        hε hR (hD_subset.trans hC)))
+
+lemma coveringNumber_closedBall_le (hε : 0 < ε) (hR : 0 ≤ R) :
+    coveringNumber ε (closedBall x R) ≤ ⌊((2 * R + ε) / ε) ^ finrank ℝ E⌋₊ :=
+  (coveringNumber_le_packingNumber ..).trans <|
+    packingNumber_le_iff.2 fun _ hP hsep ↦ hsep.encard_le_of_subset_closedBall hε hR hP
+
+end VolumetricBound
 
 end Metric
