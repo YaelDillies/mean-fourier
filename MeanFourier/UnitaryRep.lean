@@ -35,25 +35,27 @@ structure UnitaryRep where
   [normedAddCommGroup : NormedAddCommGroup E]
   [innerProductSpace : InnerProductSpace 𝕜 E]
   [completeSpace : CompleteSpace E]
+  [finiteDimensional : FiniteDimensional 𝕜 E]
   /-- The underlying unitary representation of an object in `UnitaryRep 𝕜 G` -/
   ρ : UnitaryRepresentation 𝕜 G E
 
 namespace UnitaryRep
 
-attribute [instance] normedAddCommGroup innerProductSpace completeSpace
+attribute [instance] normedAddCommGroup innerProductSpace completeSpace finiteDimensional
 
 initialize_simps_projections UnitaryRep
-  (-normedAddCommGroup, -innerProductSpace, -completeSpace)
+  (-normedAddCommGroup, -innerProductSpace, -completeSpace, -finiteDimensional)
 
 section Group
 variable [Group G]
+instance instCoeSort : CoeSort (UnitaryRep.{u} 𝕜 G) (Type u) := ⟨UnitaryRep.E⟩
 
-instance : CoeSort (UnitaryRep.{u} 𝕜 G) (Type u) where coe := UnitaryRep.E
+attribute [coe] E
 
 variable {A B C : UnitaryRep.{u} 𝕜 G}
-  [NormedAddCommGroup E] [InnerProductSpace 𝕜 E] [CompleteSpace E]
-  [NormedAddCommGroup F] [InnerProductSpace 𝕜 F] [CompleteSpace F]
-  [NormedAddCommGroup H] [InnerProductSpace 𝕜 H] [CompleteSpace H]
+  [NormedAddCommGroup E] [InnerProductSpace 𝕜 E] [CompleteSpace E] [FiniteDimensional 𝕜 E]
+  [NormedAddCommGroup F] [InnerProductSpace 𝕜 F] [CompleteSpace F] [FiniteDimensional 𝕜 F]
+  [NormedAddCommGroup H] [InnerProductSpace 𝕜 H] [CompleteSpace H] [FiniteDimensional 𝕜 H]
   {ρ : UnitaryRepresentation 𝕜 G E} {σ : UnitaryRepresentation 𝕜 G F}
   {τ : UnitaryRepresentation 𝕜 G H}
 
@@ -174,6 +176,11 @@ instance reflectsIsomorphisms_forget : (forget (UnitaryRep.{u} 𝕜 G)).Reflects
     let i := asIso ((forget (UnitaryRep.{u} 𝕜 G)).map f)
     let e : X.ρ.toRepresentation.Equiv Y.ρ.toRepresentation := { f.hom, i.toEquiv with }
     exact (mkIso e).isIso_hom
+
+lemma map_eq_one_of_iso (e : A ≅ B) {x : G} (hx : A.ρ x = 1) :
+    B.ρ x = 1 := by
+  ext v
+  simpa [hx, hom_inv_apply] using (hom_comm_apply e.hom x (e.inv.hom v)).symm
 
 lemma hom_bijective :
     (Hom.hom : (A ⟶ B) → A.ρ.toRepresentation.IntertwiningMap B.ρ.toRepresentation).Bijective where
