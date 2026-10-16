@@ -12,7 +12,7 @@ public import MeanFourier.Mathlib.Analysis.Normed.Group.Bounded
 public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
 public import MeanFourier.Mathlib.Data.ENat.Monoid
 public import MeanFourier.Mathlib.Data.EReal.Basic
-public import MeanFourier.Mathlib.Data.Real.ENatENNReal
+public import MeanFourier.Mathlib.Basic.Real.ENatENNReal
 public import MeanFourier.Mathlib.Topology.Bornology.Basic
 public import MeanFourier.Mathlib.Topology.MetricSpace.CoveringNumbers
 public import MeanFourier.Mathlib.Topology.MetricSpace.Pseudo.Defs

@@ -1,6 +1,6 @@
 module
 
-public import Mathlib.Data.ENNReal.Operations
+public import Mathlib.Basic.ENNReal.Operations
 
 public section
 

@@ -2,6 +2,8 @@ module
 
 public import Mathlib.Data.ENat.BigOperators
 
+import Mathlib.Algebra.BigOperators.WithTop
+
 public section
 
 namespace ENat

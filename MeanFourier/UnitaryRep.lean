@@ -207,15 +207,13 @@ lemma add_hom (f g : A ⟶ B) : (f + g).hom = f.hom + g.hom := rfl
 lemma hom_comp_toLinearMap (f : A ⟶ B) (g : B ⟶ C) :
     (f ≫ g).hom.toLinearMap = g.hom.toLinearMap ∘ₗ f.hom.toLinearMap := rfl
 
-lemma add_comp (f₁ f₂ : A ⟶ B) (g : B ⟶ C) :
-    (f₁ + f₂) ≫ g = f₁ ≫ g + f₂ ≫ g := by
-  ext1
-  simp [add_hom, Representation.IntertwiningMap.add_comp]
-
-lemma comp_add (f : A ⟶ B) (g₁ g₂ : B ⟶ C) :
-    f ≫ (g₁ + g₂) = f ≫ g₁ + f ≫ g₂ := by
-  ext1
+lemma add_comp (f₁ f₂ : A ⟶ B) (g : B ⟶ C) : (f₁ + f₂) ≫ g = f₁ ≫ g + f₂ ≫ g := by
+  ext : 1
   simp [add_hom, Representation.IntertwiningMap.comp_add]
+
+lemma comp_add (f : A ⟶ B) (g₁ g₂ : B ⟶ C) : f ≫ (g₁ + g₂) = f ≫ g₁ + f ≫ g₂ := by
+  ext : 1
+  simp [add_hom, Representation.IntertwiningMap.add_comp]
 
 instance : Zero (A ⟶ B) where
   zero := ofHom (0 : A.ρ.toRepresentation.IntertwiningMap B.ρ.toRepresentation)
