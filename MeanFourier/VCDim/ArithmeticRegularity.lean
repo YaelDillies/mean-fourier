@@ -59,4 +59,9 @@ theorem arithmetic_regularity_finite_hasMulVCDimLE [Fintype G] [DecidableEq G] {
     (μ := .count) (ι := Unit) (l := ⊤) .univ_of_isFiniteMeasure .foelner_of_discrete (by simpa)
       hAvcdim
   lift A' to Finset G using A'.toFinite
-  exact ⟨H, hH, A', by simpa, by simpa using hA'dens, by simpa using hA⟩
+  refine ⟨H, hH, A', by simpa, by simpa using hA'dens, ?_⟩
+  simp only [Filter.eventually_top, Set.subset_univ, Set.inter_eq_right',
+    foelner_count_indicator_one, Set.Finite.toFinset_ofPred, Set.mem_eq_mem, forall_const] at hA
+  convert hA
+  ext x
+  simp [Finset.mem_symmDiff, Set.mem_symmDiff, ← Finset.mem_coe (s := _ * _)]
