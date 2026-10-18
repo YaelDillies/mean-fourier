@@ -15,6 +15,7 @@ public import MeanFourier.Mathlib.Algebra.BigOperators.GroupWithZero.Finset
 public import MeanFourier.Mathlib.Algebra.Group.Action.Pointwise.Set.Basic
 public import MeanFourier.Mathlib.Algebra.Group.Pointwise.Set.Basic
 public import MeanFourier.Mathlib.Algebra.Module.Equiv.Basic
+public import MeanFourier.Mathlib.Analysis.Complex.Exponential
 public import MeanFourier.Mathlib.Analysis.Normed.Group.Bounded
 public import MeanFourier.Mathlib.Analysis.Normed.Group.Pointwise
 public import MeanFourier.Mathlib.Analysis.Normed.Module.Ball.Pointwise
@@ -34,8 +35,11 @@ public import MeanFourier.Mathlib.Data.Fintype.BigOperators
 public import MeanFourier.Mathlib.Data.Fintype.Pi
 public import MeanFourier.Mathlib.Data.Set.Basic
 public import MeanFourier.Mathlib.Data.Set.Card
+public import MeanFourier.Mathlib.Data.Set.Card.Arithmetic
+public import MeanFourier.Mathlib.Data.Set.Image
 public import MeanFourier.Mathlib.Data.Set.Prod
 public import MeanFourier.Mathlib.MeasureTheory.Group.FoelnerFilter
+public import MeanFourier.Mathlib.Order.Interval.Finset.Basic
 public import MeanFourier.Mathlib.Topology.Algebra.Module.Equiv.Basic
 public import MeanFourier.Mathlib.Topology.Bornology.Basic
 public import MeanFourier.Mathlib.Topology.MetricSpace.Cover
