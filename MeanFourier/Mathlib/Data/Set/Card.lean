@@ -32,6 +32,7 @@ variable (α) in
 lemma exists_ncard_eq [Infinite α] (k : ℕ) : ∃ s : Set α, s.Finite ∧ s.ncard = k := by
   simpa using exists_superset_ncard_eq finite_empty
 
+/-- A set has `ncard` zero if and only if it is empty or infinite. -/
 @[simp] lemma ncard_eq_zero_iff : s.ncard = 0 ↔ s = ∅ ∨ s.Infinite := by simp [ncard]
 
 end Set
