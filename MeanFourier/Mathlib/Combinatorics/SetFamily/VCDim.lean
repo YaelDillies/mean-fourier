@@ -325,17 +325,12 @@ lemma encard_image_inter_le_encard_shatters :
   · exact pajor_encard_aux h
   · simp [(infinite_ofPred_shatters h).encard_eq]
 
-/-- **Pajor's inequality** when `𝒜` shatters finitely many subsets of `A`: the traces of `𝒜` on `A`
-are at most as many as the subsets of `A` that `𝒜` shatters. -/
-lemma ncard_image_inter_le_ncard_shatters_of_finite (h : {B | B ⊆ A ∧ Shatters 𝒜 B}.Finite) :
-    ((A ∩ ·) '' 𝒜).ncard ≤ {B | B ⊆ A ∧ Shatters 𝒜 B}.ncard :=
-  ENat.toNat_le_toNat encard_image_inter_le_encard_shatters (Set.encard_ne_top_iff.2 h)
-
 /-- **Pajor's inequality** on a finite set `A`: the traces of `𝒜` on `A` are at most as many as
 the subsets of `A` that `𝒜` shatters. -/
 lemma ncard_image_inter_le_ncard_shatters (hA : A.Finite) :
     ((A ∩ ·) '' 𝒜).ncard ≤ {B | B ⊆ A ∧ Shatters 𝒜 B}.ncard :=
-  ncard_image_inter_le_ncard_shatters_of_finite <| hA.finite_subsets.subset fun _B hB ↦ hB.1
+  (Set.encard_le_coe_iff_finite_ncard_le.1 <| encard_image_inter_le_encard_shatters.trans_eq
+    (hA.finite_subsets.subset fun _B hB ↦ hB.1).cast_ncard_eq.symm).2
 
 /-- A family of VC dimension at most `d` shatters no infinite set. -/
 lemma HasVCDimLE.finite_of_shatters (h𝒜 : HasVCDimLE d 𝒜) (hB : Shatters 𝒜 B) : B.Finite := by
@@ -347,10 +342,8 @@ lemma HasVCDimLE.finite_of_shatters (h𝒜 : HasVCDimLE d 𝒜) (hB : Shatters �
 lemma HasVCDimLE.ncard_le_of_shatters (h𝒜 : HasVCDimLE d 𝒜) (hB : Shatters 𝒜 B) :
     B.ncard ≤ d := h𝒜 (h𝒜.finite_of_shatters hB) hB
 
-/-- **The Sauer-Shelah inequality**, local form: if every subset of a finite set `A` that `𝒜`
-shatters has size at most `d`, then `𝒜` traces at most `∑ k ≤ d, n.choose k` sets on `A`, for any
-`n ≥ A.ncard`. -/
-lemma ncard_image_inter_le_of_forall_ncard_le (hA : A.Finite) (hAn : A.ncard ≤ n)
+/-- The Sauer-Shelah count, from a bound on the shattered subsets of `A` alone. -/
+private lemma ncard_image_inter_le_of_forall_ncard_le (hA : A.Finite) (hAn : A.ncard ≤ n)
     (h : ∀ B ⊆ A, Shatters 𝒜 B → B.ncard ≤ d) :
     ((A ∩ ·) '' 𝒜).ncard ≤ ∑ k ∈ .Iic d, n.choose k :=
   calc ((A ∩ ·) '' 𝒜).ncard
@@ -388,11 +381,15 @@ lemma HasVCDimLE.vcGrowth_le (h𝒜 : HasVCDimLE d 𝒜) :
 /-- The Sauer-Shelah bound: the growth function of a family of VC dimension at
 most `d` is at most `(exp 1 / d * n) ^ d`, for `d ≤ n`. -/
 lemma HasVCDimLE.vcGrowth_le_exp (h𝒜 : HasVCDimLE d 𝒜) (hdn : d ≤ n) :
-    (vcGrowth n 𝒜 : ℝ) ≤ (exp 1 / d * n) ^ d :=
-  calc (vcGrowth n 𝒜 : ℝ)
-      ≤ ∑ k ∈ .range (d + 1), (n.choose k : ℝ) := by
-        rw [Nat.range_succ_eq_Iic]; exact mod_cast h𝒜.vcGrowth_le
-    _ ≤ (exp 1 / d * n) ^ d := sum_choose_le_exp_pow hdn
+    (vcGrowth n 𝒜 : ℝ) ≤ (exp 1 / d * n) ^ d := by
+  obtain rfl | hd := Nat.eq_zero_or_pos d
+  · rw [pow_zero]
+    exact mod_cast (h𝒜.vcGrowth_le (n := n)).trans_eq (by simp)
+  · calc (vcGrowth n 𝒜 : ℝ)
+        ≤ ((∑ k ∈ .Iic d, n.choose k : ℕ) : ℝ) := Nat.cast_le.2 h𝒜.vcGrowth_le
+      _ = ∑ k ∈ Finset.range (d + 1), (n.choose k : ℝ) := by
+          rw [Nat.range_succ_eq_Iic]; push_cast; rfl
+      _ ≤ (exp 1 / d * n) ^ d := sum_choose_le_exp_pow d n hd hdn
 
 variable [Infinite α]
 
