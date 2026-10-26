@@ -19,8 +19,9 @@ lemma ncard_ofPred_ncard_le (hA : A.Finite) (d : ℕ) :
   | zero => simpa using ncard_powerset_ncard hA 0
   | succ d ihd =>
     simp_rw [Nat.le_add_one_iff, and_or_left, ofPred_or]
-    rw [ncard_union_eq (by grind) (hA.finite_subsets.subset fun _B hB ↦ hB.1)
-        (hA.finite_subsets.subset fun _B hB ↦ hB.1), ihd, ncard_powerset_ncard hA,
-      Finset.sum_Iic_add_zero]
+    rw [ncard_union_eq ?_ ?_ ?_, ihd, ncard_powerset_ncard hA, Finset.sum_Iic_add_zero]
+    · grind
+    · exact hA.finite_subsets.subset fun _B hB ↦ hB.1
+    · exact hA.finite_subsets.subset fun _B hB ↦ hB.1
 
 end Set

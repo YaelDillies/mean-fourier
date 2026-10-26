@@ -273,13 +273,13 @@ private lemma pajor_encard_aux (hfin : ((A ∩ ·) '' 𝒜).Finite) :
       _ = (𝒮₀ ∪ 𝒮₁).encard + (𝒮₀ ∩ 𝒮₁).encard :=
           (Set.encard_union_add_encard_inter 𝒮₀ 𝒮₁).symm
       _ = (𝒮₀ ∪ 𝒮₁).encard + (insert x '' (𝒮₀ ∩ 𝒮₁)).encard := by
-          rw [((Set.insert_injOn_notMem x).mono
-            fun B hB ↦ notMem_of_forall_notMem (fun _ hC ↦ hC.2) hB.1.2).encard_image]
+          rw [((Set.insert_injOn_notMem x).mono ?_).encard_image]
+          exact fun B hB ↦ notMem_of_forall_notMem (fun _ ↦ And.right) hB.1.2
       _ = ((𝒮₀ ∪ 𝒮₁) ∪ insert x '' (𝒮₀ ∩ 𝒮₁)).encard :=
           (Set.encard_union_eq <| Set.disjoint_left.2 <| by
             rintro B (⟨-, hB⟩ | ⟨-, hB⟩) ⟨B', -, rfl⟩
-            exacts [notMem_of_forall_notMem (fun _ hC ↦ hC.2) hB (Set.mem_insert x B'),
-              notMem_of_forall_mem (fun _ hC ↦ hC.2) hB (Set.mem_insert x B')]).symm
+            exacts [notMem_of_forall_notMem (fun _ ↦ And.right) hB (Set.mem_insert x B'),
+              notMem_of_forall_mem (fun _ ↦ And.right) hB (Set.mem_insert x B')]).symm
       _ ≤ {B | B ⊆ A ∧ Shatters 𝒜 B}.encard := Set.encard_le_encard <| by
           rintro B ((⟨hBA, hB⟩ | ⟨hBA, hB⟩) | ⟨B', ⟨⟨hB'A, hB'₀⟩, -, hB'₁⟩, rfl⟩)
           · exact ⟨hBA, hB.mono (Set.sep_subset _ _)⟩
@@ -298,7 +298,8 @@ private lemma injOn_inter_ofPred_shatters_singleton :
 /-- A family shattering finitely many singletons in `A` has finitely many traces on `A`. -/
 private lemma finite_image_inter_of_finite_ofPred_shatters_singleton
     (h : {x ∈ A | Shatters 𝒜 {x}}.Finite) : ((A ∩ ·) '' 𝒜).Finite :=
-  .of_finite_image (h.powerset.subset (by grind)) injOn_inter_ofPred_shatters_singleton
+  .of_finite_image (h.powerset.subset (by grind [-Set.image_image]))
+    injOn_inter_ofPred_shatters_singleton
 
 /-- A family with infinitely many traces on `A` shatters infinitely many subsets of `A`. -/
 lemma infinite_ofPred_shatters (h : ((A ∩ ·) '' 𝒜).Infinite) :
@@ -330,7 +331,7 @@ the subsets of `A` that `𝒜` shatters. -/
 lemma ncard_image_inter_le_ncard_shatters (hA : A.Finite) :
     ((A ∩ ·) '' 𝒜).ncard ≤ {B | B ⊆ A ∧ Shatters 𝒜 B}.ncard :=
   (Set.encard_le_coe_iff_finite_ncard_le.1 <| encard_image_inter_le_encard_shatters.trans_eq
-    (hA.finite_subsets.subset fun _B hB ↦ hB.1).cast_ncard_eq.symm).2
+    (hA.finite_subsets.subset fun _B ↦ And.left).cast_ncard_eq.symm).2
 
 /-- A family of VC dimension at most `d` shatters no infinite set. -/
 lemma HasVCDimLE.finite_of_shatters (h𝒜 : HasVCDimLE d 𝒜) (hB : Shatters 𝒜 B) : B.Finite := by

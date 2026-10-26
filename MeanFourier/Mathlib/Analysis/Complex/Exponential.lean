@@ -21,10 +21,9 @@ private lemma sum_choose_mul_pow_le_add_one_pow {t : ℝ} (ht : 0 ≤ t) (hdm : 
         congr! 1 with i
         ring
 
-private lemma one_add_div_pow_le_exp_pow : (1 + (d : ℝ) / m) ^ m ≤ exp 1 ^ d := by
-  simpa [neg_div, sub_neg_eq_add, ← Real.exp_nat_mul]
-    using Real.one_sub_div_pow_le_exp_neg (n := m) (t := -d)
-      ((neg_nonpos.2 d.cast_nonneg).trans m.cast_nonneg)
+lemma one_add_div_pow_le_exp {x : ℝ} (hx : -m ≤ x) : (1 + x / m) ^ m ≤ exp x := by
+  simpa [neg_div, sub_neg_eq_add]
+    using Real.one_sub_div_pow_le_exp_neg (n := m) (t := -x) (neg_le.1 hx)
 
 private lemma sum_choose_le_mul_sum_choose_mul_pow (hd : (0 : ℝ) < d) (hm : (0 : ℝ) < m)
     (hdm : (d : ℝ) ≤ m) :
@@ -52,5 +51,8 @@ lemma sum_choose_le_exp_pow (d m : ℕ) (hd : 0 < d) (hdm : d ≤ m) :
         sum_choose_le_mul_sum_choose_mul_pow (mod_cast hd) hm (mod_cast hdm)
     _ ≤ (m / d : ℝ) ^ d * (1 + d / m : ℝ) ^ m := by
         gcongr; exact sum_choose_mul_pow_le_add_one_pow (by positivity) hdm
-    _ ≤ (m / d : ℝ) ^ d * exp 1 ^ d := by gcongr; exact one_add_div_pow_le_exp_pow
+    _ ≤ (m / d : ℝ) ^ d * exp 1 ^ d := by
+        gcongr
+        simpa [← Real.exp_nat_mul]
+          using one_add_div_pow_le_exp ((neg_nonpos.2 m.cast_nonneg).trans d.cast_nonneg)
     _ = (exp 1 / d * m) ^ d := by ring
