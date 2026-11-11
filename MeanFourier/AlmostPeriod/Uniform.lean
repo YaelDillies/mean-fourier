@@ -415,9 +415,8 @@ lemma isUAP_prod_iff {f : G → X × Y} :
 section MetricSpace
 variable [MetricSpace G] [IsIsometricSMul Gᵐᵒᵖ G] {δ : ℝ → ℝ}
 
-lemma Metric.IsUniformContinuousWith.closedBall_one_subset_uniformAP
-    (hf : IsUniformContinuousWith δ f) (hε : 0 < ε) :
-    closedBall 1 (δ ε) ⊆ AP∞(f, ε) := by
+lemma closedBall_one_subset_uniformAP_of_isUniformContinuousWith (hf : IsUniformContinuousWith δ f)
+    (hε : 0 < ε) : closedBall 1 (δ ε) ⊆ AP∞(f, ε) := by
   intro t ht x
   simp only [mem_closedBall'] at ht ⊢
   refine hf hε ?_
@@ -430,7 +429,7 @@ protected lemma Metric.IsUniformContinuousWith.isUAPWith (hδ : ∀ ε > 0, 0 < 
     (hf : IsUniformContinuousWith δ f) :
     IsUAPWith (fun ε ↦ (coveringNumber (δ ε).toNNReal (.univ : Set G)).toNat) f := by
   intro ε hε
-  grw [← hf.closedBall_one_subset_uniformAP hε]
+  grw [← closedBall_one_subset_uniformAP_of_isUniformContinuousWith hf hε]
   simpa [univ_closedBall_one (hδ ε hε).le] using
     isCompact_univ.totallyBounded.coveringNumber_ne_top (Real.toNNReal_pos.mpr (hδ ε hε)).ne'
 

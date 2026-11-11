@@ -6,15 +6,12 @@ public import Mathlib.Topology.MetricSpace.CoveringNumbers
 import Mathlib.Tactic.Group
 import MeanFourier.Mathlib.Data.EReal.Basic
 
+public section
+
 open Metric
 open scoped Finset Pointwise NNReal ENNReal
 
-public section
-
-variable {G X : Type*} [Group G]
-
-section PseudoMetricSpace
-variable [PseudoMetricSpace G] [IsIsometricSMul Gᵐᵒᵖ G] {K : ℝ} {ε : ℝ}
+variable {G X : Type*} [Group G] [PseudoMetricSpace G] [IsIsometricSMul Gᵐᵒᵖ G] {K : ℝ} {ε : ℝ}
 
 lemma smul_closedBall_eq_univ_iff_isCover (hε : 0 ≤ ε) (x₀ : G) {F : Set G} :
     F • closedBall x₀ ε = .univ ↔ IsCover ε.toNNReal .univ F⁻¹ := by
@@ -53,7 +50,7 @@ lemma smul_closedBall_eq_univ_iff_isCover (hε : 0 ≤ ε) (x₀ : G) {F : Set G
     rwa [edist_le_coe, ← dist_le_coe, Real.coe_toNNReal _ hε] at hdist
 
 @[simp]
-lemma univ_closedBall (hε : 0 ≤ ε) (x₀ : G) :
+lemma covBySMul_univ_closedBall_iff (hε : 0 ≤ ε) (x₀ : G) :
     CovBySMul G K .univ (closedBall x₀ ε) ↔
       (coveringNumber ε.toNNReal (.univ : Set G) : EReal) ≤ K := by
   classical
@@ -64,16 +61,16 @@ lemma univ_closedBall (hε : 0 ≤ ε) (x₀ : G) :
     have h_card : ((F : Set G)⁻¹).encard = F.card := by
       rw [← Set.inv_preimage, Set.encard_preimage_of_bijective inv_bijective,
         Set.encard_coe_eq_coe_finsetCard]
-    have h_le : (coveringNumber ε.toNNReal (.univ : Set G) : EReal) ≤ ((F.card : ℕ∞) : EReal) := by
-      exact_mod_cast h_card ▸ h_cover.coveringNumber_le_encard (Set.subset_univ _)
+    have h_le : (coveringNumber ε.toNNReal (.univ : Set G) : EReal) ≤ ((F.card : ℕ∞) : EReal) :=
+      mod_cast h_card ▸ h_cover.coveringNumber_le_encard (Set.subset_univ _)
     have hF_cast : ((F.card : ℕ∞) : EReal) ≤ K := by
       change (F.card : EReal) ≤ K
       exact_mod_cast hF
     exact h_le.trans hF_cast
   · intro h
     have h_ne_top : coveringNumber ε.toNNReal (.univ : Set G) ≠ ⊤ :=
-      ENat.ne_top_of_ennrealToEReal_toENNReal_le_realToEReal h
-    set F' : Finset G := (finite_minimalCover (A := (.univ : Set G)) (ε := ε.toNNReal)).toFinset
+      fun h_top ↦ by simp [h_top] at h
+    set F' : Finset G := (finite_minimalCover (A := .univ) (ε := ε.toNNReal)).toFinset
     have hF'_card_top : (F'.card : ℕ∞) = coveringNumber ε.toNNReal (.univ : Set G) := by
       rw [← Set.encard_coe_eq_coe_finsetCard, Set.Finite.coe_toFinset, encard_minimalCover h_ne_top]
     have h_cover : IsCover ε.toNNReal (.univ : Set G) (F' : Set G) := by
@@ -86,13 +83,4 @@ lemma univ_closedBall (hε : 0 ≤ ε) (x₀ : G) :
       rw [this]
       exact ENat.natCast_toNat_le_of_ennrealToEReal_toENNReal_le_realToEReal h
     · rw [Set.univ_subset_iff, smul_closedBall_eq_univ_iff_isCover hε x₀]
-      have : ((F'.image (fun x ↦ x⁻¹ : G → G) : Set G)⁻¹) = (F' : Set G) := by simp
-      exact this.symm ▸ h_cover
-
-@[simp]
-lemma univ_closedBall_one (hε : 0 ≤ ε) :
-    CovBySMul G K .univ (closedBall (1 : G) ε) ↔
-      (coveringNumber ε.toNNReal (.univ : Set G) : EReal) ≤ K :=
-  univ_closedBall hε 1
-
-end PseudoMetricSpace
+      simpa using h_cover
