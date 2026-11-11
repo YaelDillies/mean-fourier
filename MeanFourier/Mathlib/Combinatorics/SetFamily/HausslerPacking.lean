@@ -6,9 +6,9 @@ Authors: Yaël Dillies
 module
 
 public import AddCombi.Mathlib.Algebra.Notation.Indicator
+public import AddCombi.VCDim.SetFamily.Defs
 public import Mathlib.Analysis.Normed.Lp.PiLp
 public import Mathlib.Topology.MetricSpace.MetricSeparated
-public import MeanFourier.Mathlib.Combinatorics.SetFamily.VCDim
 
 /-!
 # Haussler's packing lemma

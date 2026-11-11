@@ -20,11 +20,8 @@ public import MeanFourier.Mathlib.Analysis.Normed.Group.Pointwise
 public import MeanFourier.Mathlib.Analysis.Normed.Module.Ball.Pointwise
 public import MeanFourier.Mathlib.Basic.ENNReal.BigOperators
 public import MeanFourier.Mathlib.Basic.ENNReal.Operations
-public import MeanFourier.Mathlib.Combinatorics.Additive.ApproximateSubgroup
 public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
-public import MeanFourier.Mathlib.Combinatorics.Additive.VCDim
 public import MeanFourier.Mathlib.Combinatorics.SetFamily.HausslerPacking
-public import MeanFourier.Mathlib.Combinatorics.SetFamily.VCDim
 public import MeanFourier.Mathlib.Data.ENat.BigOperators
 public import MeanFourier.Mathlib.Data.ENat.Monoid
 public import MeanFourier.Mathlib.Data.Finset.Pi

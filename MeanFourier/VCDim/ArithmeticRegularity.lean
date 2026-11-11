@@ -5,8 +5,8 @@ Authors: Yaël Dillies
 -/
 module
 
+public import AddCombi.VCDim.Additive.Defs
 public import MeanFourier.BohrSet.Defs
-public import MeanFourier.Mathlib.Combinatorics.Additive.VCDim
 public import MeanFourier.InvtMean.Foelner
 
 import MeanFourier.Mathlib.Combinatorics.SetFamily.HausslerPacking
