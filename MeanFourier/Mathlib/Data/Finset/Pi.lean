@@ -28,13 +28,14 @@ noncomputable def pi' (s : Finset ι) (t : ∀ i, Finset (α i))
         ht' ⟨i, hi, by simpa using hti⟩).choose,
     fun f g hfg ↦ by ext i hi; simpa [hi] using congr($hfg i)⟩
 
+set_option backward.isDefEq.respectTransparency false in
 lemma pi'_of_forall_singleton [DecidableEq ι] (x : ∀ i ∉ s, α i) (ht : ∀ i hi, t i = {x i hi}) :
     s.pi' t (by simp +contextual [ht]) =
       (s.pi t).map ⟨fun f i ↦ if hi : i ∈ s then f i hi else x i hi,
       fun f g hfg ↦ by ext i hi; simpa [hi] using congr($hfg i)⟩ := by
   ext y
   unfold pi'
-  rw [dif_neg (by simp +contextual [ht])]
+  rw [dite_eq_right (by simp +contextual [ht])]
   simp only [mem_map, mem_pi, Function.Embedding.coeFn_mk]
   congr! with z i _ hi
   generalize_proofs h

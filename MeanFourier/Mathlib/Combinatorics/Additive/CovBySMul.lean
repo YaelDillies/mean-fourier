@@ -1,107 +1,20 @@
 module
 
-public import Mathlib.Algebra.BigOperators.Group.Finset.Defs
 public import Mathlib.Combinatorics.Additive.CovBySMul
 public import Mathlib.Topology.MetricSpace.CoveringNumbers
 
-import Mathlib.Algebra.Order.BigOperators.Ring.Finset
 import Mathlib.Tactic.Group
 import MeanFourier.Mathlib.Data.EReal.Basic
-import MeanFourier.Mathlib.Data.Fintype.BigOperators
-
-/-!
-## TODO
-
-Protected `CovBySMul.rfl`
--/
 
 open Metric
 open scoped Finset Pointwise NNReal ENNReal
 
 public section
 
-variable {M G X : Type*}
-
-section Monoid
-variable [Monoid M] [MulAction M X] {A B : Set X} {K L ε : ℝ} {m n : ℕ}
-
-attribute [gcongr] CovBySMul.subset_left CovBySMul.subset_right
-
-@[to_additive]
-lemma CovBySMul.pos (hAB : CovBySMul M K A B) (hA : A.Nonempty) : 0 < K := by
-  obtain ⟨F, hFK, hFAB⟩ := hAB; contrapose! hA; grw [hA] at hFK; simp_all
-
-@[to_additive]
-lemma CovBySMul.prod {N : Type*} [Group N] {A B : Set M} {C D : Set N} (hAB : CovBySMul M K A B)
-    (hCD : CovBySMul N L C D) : CovBySMul (M × N) (K * L) (A ×ˢ C) (B ×ˢ D) := by
-  obtain ⟨F₁, h₁, hAB⟩ := hAB
-  obtain ⟨F₂, h₂, hCD⟩ := hCD
-  classical
-  refine ⟨F₁ ×ˢ F₂, ?_, ?_⟩
-  · simp only [Finset.card_product, Nat.cast_mul]
-    gcongr
-    grw [← h₁]
-    positivity
-  rintro ⟨x, y⟩ ⟨(hx : x ∈ _), hy⟩
-  obtain ⟨g, hg, b, hb, rfl⟩ := hAB hx
-  obtain ⟨h, hh, d, hd, rfl⟩ := hCD hy
-  exact ⟨(g, h), by simp [*], (b, d), by simp [*]⟩
-
-@[to_additive]
-lemma CovBySMul.pi {ι : Type*} {G X : ι → Type*} {s : Finset ι} [∀ i, Group (G i)]
-    [∀ i, MulAction (G i) (X i)] {A B : ∀ i, Set (X i)} {K : ι → ℝ}
-    (hAB : ∀ i ∈ s, CovBySMul (G i) (K i) (A i) (B i)) :
-    CovBySMul (∀ i, G i) (∏ i ∈ s, K i) (.pi s A) (.pi s B) := by
-  choose! F hF hFS using hAB
-  classical
-  refine ⟨.pi' s (fun i ↦ if i ∈ s then F i else {1}) <| by simp +contextual, ?_, fun x hx ↦ ?_⟩
-  · simp +contextual only [↓reduceIte, Finset.singleton_inj, exists_eq', implies_true,
-      Finset.card_pi', Nat.cast_prod]
-    gcongr with i hi
-    exact hF _ hi
-  have (i : ι) : Nonempty (X i) := ⟨x i⟩
-  choose! g hg y hy hgy using fun i hi ↦ hFS i hi <| hx _ hi
-  exact ⟨fun i ↦ if i ∈ s then g i else 1, by simp_all [apply_ite],
-    fun i ↦ if i ∈ s then y i else x i, by simp_all, by ext; dsimp; split <;> simp_all⟩
-
-end Monoid
-
-variable [Group G] {A B C : Set G} {K L : ℝ}
-
-@[to_additive]
-lemma CovBySMul.inter (hA : CovBySMul G K C A) (hB : CovBySMul G L C B) :
-    CovBySMul G (K * L) C (A⁻¹ * A ∩ (B⁻¹ * B)) := by
-  classical
-  obtain ⟨F₁, hF₁card, hF₁⟩ := hA
-  obtain ⟨F₂, hF₂card, hF₂⟩ := hB
-  have (x : G) (hx : x ∈ C) : ∃ p : G × G, p.1 ∈ F₁ ∧ p.2 ∈ F₂ ∧ p.1⁻¹ * x ∈ A ∧ p.2⁻¹ * x ∈ B := by
-    obtain ⟨s, hs, a, ha, hsa⟩ := hF₁ hx
-    obtain ⟨u, hu, b, hb, hub⟩ := hF₂ hx
-    exact ⟨(s, u), by grind [smul_eq_mul, inv_mul_cancel_left]⟩
-  choose! pair hp using this
-  let rep (p : G × G) : G := if h : ∃ y ∈ C, pair y = p then h.choose else 1
-  have (x : G) (hx : x ∈ C) : pair (rep (pair x)) = pair x := by
-    have : ∃ y ∈ C, pair y = pair x := ⟨x, hx, by rfl⟩
-    grind
-  refine ⟨(F₁ ×ˢ F₂).image rep, ?_, fun x hx ↦ ?_⟩
-  · grw [Finset.card_image_le, Finset.card_product, Nat.cast_mul, hF₁card, hF₂card]
-    grind
-  · let r := rep (pair x)
-    have : r ∈ C := by dsimp [r, rep]; split_ifs <;> grind
-    refine ⟨r, by grind, r⁻¹ * x, ⟨
-      ⟨((pair x).1⁻¹ * r)⁻¹, ?_, (pair x).1⁻¹ * x, (hp x hx).2.2.1, by group⟩,
-      ⟨((pair x).2⁻¹ * r)⁻¹, ?_, (pair x).2⁻¹ * x, (hp x hx).2.2.2, by group⟩⟩, by simp⟩
-      <;> grind [Set.mem_inv, inv_inv]
-
-/-- Covering `B` by `K` right translates of `A` is the same as covering `B⁻¹` by `K` left translates
-of `A⁻¹`. -/
-lemma covBySMul_mulOpposite_iff : CovBySMul Gᵐᵒᵖ K A B ↔ CovBySMul G K A⁻¹ B⁻¹ := by
-  refine ((Equiv.inv G).trans MulOpposite.opEquiv).finsetCongr.symm.exists_congr' ?_
-  simp [Set.inv_subset, ← Function.comp_def _ (·⁻¹), Set.image_comp, -MulOpposite.op_inv,
-    Set.image_op_smul]
+variable {G X : Type*} [Group G]
 
 section PseudoMetricSpace
-variable [PseudoMetricSpace G] [IsIsometricSMul Gᵐᵒᵖ G] {K L : ℝ} {ε : ℝ}
+variable [PseudoMetricSpace G] [IsIsometricSMul Gᵐᵒᵖ G] {K : ℝ} {ε : ℝ}
 
 lemma smul_closedBall_eq_univ_iff_isCover (hε : 0 ≤ ε) (x₀ : G) {F : Set G} :
     F • closedBall x₀ ε = .univ ↔ IsCover ε.toNNReal .univ F⁻¹ := by
@@ -109,7 +22,7 @@ lemma smul_closedBall_eq_univ_iff_isCover (hε : 0 ≤ ε) (x₀ : G) {F : Set G
   · have h_sub : Set.univ ⊆ F • closedBall x₀ ε := h.symm.subset
     obtain ⟨g, hg, y, hy, hxy⟩ := Set.mem_smul.mp (h_sub (Set.mem_univ (x⁻¹ * x₀)))
     refine ⟨g⁻¹, by simp [hg], ?_⟩
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     have hxy' : g⁻¹ * x⁻¹ * x₀ = y := by rw [mul_assoc, ← hxy, smul_eq_mul, inv_mul_cancel_left]
     rw [edist_le_coe, ← dist_le_coe, Real.coe_toNNReal _ hε]
     rw [mem_closedBall] at hy
@@ -136,7 +49,7 @@ lemma smul_closedBall_eq_univ_iff_isCover (hε : 0 ≤ ε) (x₀ : G) {F : Set G
       rw [h2] at h1
       exact h1.symm
     rw [h_eq, dist_comm]
-    simp only [Set.mem_setOf_eq] at hdist
+    simp only [Set.mem_ofPred_eq] at hdist
     rwa [edist_le_coe, ← dist_le_coe, Real.coe_toNNReal _ hε] at hdist
 
 @[simp]

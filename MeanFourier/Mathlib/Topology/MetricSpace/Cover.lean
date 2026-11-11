@@ -36,7 +36,7 @@ protected lemma IsCover.pi {ι : Type*} [Fintype ι] {X : ι → Type*} {I : Set
   have (i : ι) : Nonempty (X i) := ⟨x i⟩
   choose! c hc hxc using fun i hi ↦ hC i hi (hx i hi)
   refine ⟨fun i ↦ if i ∈ I then c i else x i, fun i hi ↦ by dsimp; split_ifs; exact hc i hi, ?_⟩
-  simp only [edist_pi_def, Finset.sup_le_iff, Finset.mem_univ, forall_const, Set.mem_setOf_eq]
+  simp only [edist_pi_def, Finset.sup_le_iff, Finset.mem_univ, forall_const, Set.mem_ofPred_eq]
   rintro i
   split_ifs <;> simp_all
 

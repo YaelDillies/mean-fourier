@@ -83,4 +83,32 @@ lemma _root_.LipschitzOnWith.isUniformContinuousOnWith {K : ℝ≥0} {S : Set X}
     field_simp
     rfl
 
+/-- If `f` is uniformly continuous on `S` with modulus `ε ↦ ε / K` for some `0 < K`,
+then `f` is `K`-Lipschitz on `S`. -/
+lemma IsUniformContinuousOnWith.lipschitzOnWith {K : ℝ≥0} {S : Set X} (hK : 0 < K)
+    (hf : IsUniformContinuousOnWith (fun ε ↦ ε / K) f S) : LipschitzOnWith K f S := by
+  rw [lipschitzOnWith_iff_dist_le_mul]
+  refine fun x hx y hy ↦ le_of_forall_gt_imp_ge_of_dense fun a ha ↦ hf (ha.trans_le' ?_) hx hy ?_
+  · positivity
+  · rw [le_div_iff₀ (by positivity)]
+    nlinarith [ha]
+
+/-- A function is `K`-Lipschitz on `S` iff it is uniformly continuous on `S` with modulus
+`ε ↦ ε / K`, provided `0 < K`. -/
+lemma lipschitzOnWith_iff_isUniformContinuousOnWith {K : ℝ≥0} {S : Set X} (hK : 0 < K) :
+    LipschitzOnWith K f S ↔ IsUniformContinuousOnWith (fun ε ↦ ε / K) f S :=
+  ⟨LipschitzOnWith.isUniformContinuousOnWith, IsUniformContinuousOnWith.lipschitzOnWith hK⟩
+
+/-- Conversely, if `f` is uniformly continuous with modulus `ε ↦ ε / K` for some `0 < K`,
+then `f` is `K`-Lipschitz. -/
+lemma IsUniformContinuousWith.lipschitzWith {K : ℝ≥0} (hK : 0 < K)
+    (hf : IsUniformContinuousWith (fun ε ↦ ε / K) f) : LipschitzWith K f :=
+  lipschitzOnWith_univ.1 ((isUniformContinuousOnWith_univ.2 hf).lipschitzOnWith hK)
+
+/-- A function is `K`-Lipschitz iff it is uniformly continuous with modulus `ε ↦ ε / K`, provided
+`0 < K`. -/
+lemma lipschitzWith_iff_isUniformContinuousWith {K : ℝ≥0} (hK : 0 < K) :
+    LipschitzWith K f ↔ IsUniformContinuousWith (fun ε ↦ ε / K) f :=
+  ⟨LipschitzWith.isUniformContinuousWith, IsUniformContinuousWith.lipschitzWith hK⟩
+
 end Metric

@@ -6,9 +6,9 @@ Authors: Yaël Dillies
 module
 
 public import Mathlib.Combinatorics.Additive.ApproximateSubgroup
-public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
-public import MeanFourier.Mathlib.Topology.MetricSpace.CoveringNumbers
 public import MeanFourier.BohrSet.Defs
+
+import AddCombi.Mathlib.Combinatorics.Additive.CovBySMul
 
 /-!
 # Dilation estimate for Bohr sets

@@ -5,19 +5,17 @@ Authors: Yaël Dillies
 -/
 module
 
-public import Mathlib.Analysis.RCLike.Basic
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.Combinatorics.Additive.CovBySMul
+public import Mathlib.Topology.MetricSpace.CoveringNumbers
 public import MeanFourier.AlmostConvergent
-public import MeanFourier.Mathlib.Analysis.Normed.Group.Bounded
-public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
-public import MeanFourier.Mathlib.Data.ENat.Basic
-public import MeanFourier.Mathlib.Data.EReal.Basic
-public import MeanFourier.Mathlib.Data.Real.ENatENNReal
-public import MeanFourier.Mathlib.Topology.Bornology.Basic
-public import MeanFourier.Mathlib.Topology.MetricSpace.CoveringNumbers
 public import MeanFourier.Mathlib.Topology.MetricSpace.Pseudo.Defs
 
+import AddCombi.Mathlib.Combinatorics.Additive.CovBySMul
 import MeanFourier.Mathlib.Algebra.Group.Action.Pointwise.Set.Basic
+import MeanFourier.Mathlib.Analysis.Normed.Group.Bounded
+import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
+import MeanFourier.Mathlib.Topology.MetricSpace.CoveringNumbers
 
 /-!
 # Uniformly almost-periodic functions

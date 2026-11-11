@@ -107,10 +107,10 @@ scoped notation3 "Bohr(" Γ", " ρ ")" => (ofWidth Γ ρ).chordSet
 instance instCoe : Coe (BohrSet G) (Set G) := ⟨chordSet⟩
 instance instCoeSort : CoeSort (BohrSet G) (Type _) := ⟨Elem⟩
 
-lemma mem_chordSet_iff_nnnorm_ewidth :
+lemma mem_chordSet_iff_nnNorm_ewidth :
     x ∈ B.chordSet ↔ ∀ ψ, ‖1 - (ψ x : ψ.E →L[ℂ] ψ.E)‖₊ ≤ B.ewidth ψ := .rfl
 
-lemma mem_chordSet_iff_nnnorm_width :
+lemma mem_chordSet_iff_nnNorm_width :
     x ∈ B.chordSet ↔ ∀ ⦃ψ⦄, ψ ∈ B.frequencies → ‖1 - (ψ x : ψ.E →L[ℂ] ψ.E)‖₊ ≤ B.width ψ := by
   refine forall_congr' fun ψ => ?_
   constructor
@@ -128,21 +128,22 @@ lemma mem_chordSet_iff_nnnorm_width :
 
 lemma mem_chordSet_iff_norm_width :
     x ∈ B.chordSet ↔ ∀ ⦃ψ⦄, ψ ∈ B.frequencies → ‖1 - (ψ x : ψ.E →L[ℂ] ψ.E)‖ ≤ B.width ψ :=
-  mem_chordSet_iff_nnnorm_width
+  mem_chordSet_iff_nnNorm_width
 
 @[simp, norm_cast] lemma coeSort_coe (B : BohrSet G) : ↥(B : Set G) = B := rfl
 
-@[simp] lemma one_mem_chordSet : 1 ∈ B.chordSet := by simp [mem_chordSet_iff_nnnorm_width]
+@[simp] lemma one_mem_chordSet : 1 ∈ B.chordSet := by simp [mem_chordSet_iff_nnNorm_width]
 
+set_option backward.isDefEq.respectTransparency false in
 @[simp] lemma inv_mem_chordSet : x⁻¹ ∈ B.chordSet ↔ x ∈ B.chordSet := by
   refine forall_congr' fun ψ ↦ ?_
-  rw [← nnnorm_map ContinuousLinearMap.adjoint]
+  rw [← nnNorm_map ContinuousLinearMap.adjoint]
   simp [-LinearIsometryEquiv.toContinuousLinearEquiv_symm, LinearIsometryEquiv.inv_def]
 
 @[simp] lemma inv_chordSet : B.chordSet⁻¹ = B.chordSet := by ext; simp
 
 @[simp] lemma conj_mem_chordSet : y * x * y⁻¹ ∈ B.chordSet ↔ x ∈ B.chordSet := by
-  simp only [mem_chordSet_iff_nnnorm_ewidth]
+  simp only [mem_chordSet_iff_nnNorm_ewidth]
   congr! 3 with ψ
   calc
     ‖1 - (ψ.ρ (y * x * y⁻¹) : ψ.E →L[ℂ] ψ.E)‖₊
@@ -234,17 +235,16 @@ noncomputable instance [Finite G] : InfSet (BohrSet G) where
     mem_frequencies := by simp
   }
 
-noncomputable def minimalAxioms [Finite G] :
-    CompletelyDistribLattice.MinimalAxioms (BohrSet G) :=
-  ewidth_injective.completelyDistribLatticeMinimalAxioms .of BohrSet.ewidth
-    .rfl .rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl)
-    (fun B ↦ by ext ψ; simp [iSup_apply]; rfl)
-    (fun B ↦ by ext ψ; simp [iInf_apply]; rfl)
+noncomputable instance [Finite G] : CompleteLattice (BohrSet G) :=
+  ewidth_injective.completeLattice BohrSet.ewidth .rfl .rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun B ↦ by ext ψ; simp only [iSup_apply]; rfl)
+    (fun B ↦ by ext ψ; simp only [iInf_apply]; rfl)
     rfl
     rfl
 
-noncomputable instance [Finite G] : CompletelyDistribLattice (BohrSet G) :=
-  .ofMinimalAxioms BohrSet.minimalAxioms
+noncomputable instance [Finite G] : CompletelyDistribLattice (BohrSet G) := by
+  refine .ofMinimalAxioms <| ewidth_injective.completelyDistribLatticeMinimalAxioms .of ewidth ?_ ?_
+    <;> · intros; ext; simp only [iSup_apply, iInf_apply]; rfl
 
 /-! ### Width, frequencies, rank -/
 
@@ -329,9 +329,9 @@ end smul
 lemma eq_singleton_one_of_ewidth_eq_zero {B : BohrSet G} (h : B.ewidth = 0) :
     B.chordSet = {1} := by
   rw [Set.eq_singleton_iff_unique_mem]
-  simp only [mem_chordSet_iff_nnnorm_width, map_one,
+  simp only [mem_chordSet_iff_nnNorm_width, map_one,
     LinearIsometryEquiv.toContinuousLinearEquiv_one,
-    ContinuousLinearEquiv.toContinuousLinearMap_one, sub_self, nnnorm_zero, zero_le, implies_true,
+    ContinuousLinearEquiv.toContinuousLinearMap_one, sub_self, nnNorm_zero, zero_le, implies_true,
     true_and]
   intro x hx
   by_contra!
@@ -341,14 +341,14 @@ lemma eq_singleton_one_of_ewidth_eq_zero {B : BohrSet G} (h : B.ewidth = 0) :
   -- apply hψ
   -- have hψ' : ψ ∈ B.frequencies := by simp [B.mem_frequencies, h]
   -- specialize hx hψ'
-  -- rwa [B.width_def, h, Pi.zero_apply, ENNReal.toNNReal_zero, nonpos_iff_eq_zero, nnnorm_eq_zero,
+  -- rwa [B.width_def, h, Pi.zero_apply, ENNReal.toNNReal_zero, nonpos_iff_eq_zero, nnNorm_eq_zero,
   --   sub_eq_zero, eq_comm] at hx
 
 lemma chordSet_eq_top_of_two_le_width {B : BohrSet G} (h : ∀ ψ, 2 ≤ B.width ψ) :
     B.chordSet = Set.univ := by
-  simp only [Set.eq_univ_iff_forall, mem_chordSet_iff_nnnorm_width]
+  simp only [Set.eq_univ_iff_forall, mem_chordSet_iff_nnNorm_width]
   intro i ψ _
-  grw [nnnorm_sub_le, ← h]
+  grw [nnNorm_sub_le, ← h]
   norm_num
 
 @[gcongr] lemma chordSet_mono {B₁ B₂ : BohrSet G} (h : B₁ ≤ B₂) : B₁.chordSet ⊆ B₂.chordSet :=
@@ -361,11 +361,11 @@ open Pointwise
 lemma chordSet_mul_chordSet_subset {B₁ B₂ B₃ : BohrSet G} (h : B₁.ewidth + B₂.ewidth ≤ B₃.ewidth) :
     B₁.chordSet * B₂.chordSet ⊆ B₃.chordSet := by
   intro x
-  simp only [mem_chordSet_iff_nnnorm_ewidth, Set.mem_mul, forall_exists_index, and_imp]
+  simp only [mem_chordSet_iff_nnNorm_ewidth, Set.mem_mul, forall_exists_index, and_imp]
   rintro x hx y hy rfl ψ
   rw [map_mul]
   have : ‖1 - (ψ x : ψ.E →L[ℂ] ψ.E) * ψ y‖₊ ≤ ‖1 - (ψ x : ψ.E →L[ℂ] ψ.E)‖₊ + _ :=
-    nnnorm_sub_mul_le (by simp)
+    nnNorm_sub_mul_le (by simp)
   rw [← ENNReal.coe_le_coe, ENNReal.coe_add] at this
   exact this.trans <| (h _).trans' <| add_le_add (hx _) (hy _)
 
