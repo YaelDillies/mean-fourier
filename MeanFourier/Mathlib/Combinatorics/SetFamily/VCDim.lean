@@ -9,7 +9,6 @@ public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 public import Mathlib.Data.Finset.Powerset
 public import Mathlib.Order.Interval.Set.Basic
 public import MeanFourier.Mathlib.Data.Set.Basic
-public import MeanFourier.Mathlib.Data.Set.Card
 
 import Mathlib.Tactic.Positivity
 import Mathlib.Tactic.Simproc.ExistsAndEq
@@ -202,7 +201,7 @@ lemma hasVCDimLE_iff_vcGrowth : HasVCDimLE d 𝒜 ↔ vcGrowth (d + 1) 𝒜 < 2 
   · rintro h A hA hA𝒜
     contrapose! h
     rw [← Nat.add_one_le_iff] at h
-    obtain ⟨B, hBA, hB, hBd⟩ := Set.exists_subset_ncard_eq hA h
+    obtain ⟨B, hBA, hB, hBd⟩ := Set.exists_subset_ncard_eq h
     refine ⟨B, hB, hBd, ?_⟩
     grw [← hBd, ← shatters_iff_le_ncard_image_inter, hBA]
     exact hA𝒜
