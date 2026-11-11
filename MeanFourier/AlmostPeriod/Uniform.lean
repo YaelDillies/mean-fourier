@@ -430,7 +430,7 @@ protected lemma Metric.IsUniformContinuousWith.isUAPWith (hδ : ∀ ε > 0, 0 < 
     IsUAPWith (fun ε ↦ (coveringNumber (δ ε).toNNReal (.univ : Set G)).toNat) f := by
   intro ε hε
   grw [← closedBall_one_subset_uniformAP_of_isUniformContinuousWith hf hε]
-  simpa [univ_closedBall_one (hδ ε hε).le] using
+  simpa [covBySMul_univ_closedBall_iff (hδ ε hε).le] using
     isCompact_univ.totallyBounded.coveringNumber_ne_top (Real.toNNReal_pos.mpr (hδ ε hε)).ne'
 
 @[fun_prop]
