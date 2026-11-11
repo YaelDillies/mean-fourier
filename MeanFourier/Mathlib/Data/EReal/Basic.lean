@@ -1,8 +1,7 @@
 module
 
-public import Mathlib.Data.ENat.Basic
 public import Mathlib.Data.EReal.Basic
-public import Mathlib.Data.Real.ENatENNReal
+public import Mathlib.Basic.Real.ENatENNReal
 
 public section
 
@@ -24,6 +23,6 @@ lemma ENat.ne_top_of_ennrealToEReal_toENNReal_le_realToEReal {n : ℕ∞} {K : �
 lemma ENat.natCast_toNat_le_of_ennrealToEReal_toENNReal_le_realToEReal {n : ℕ∞} {K : ℝ}
     (h : (n : EReal) ≤ K) : n.toNat ≤ K := by
   lift n to ℕ using ENat.ne_top_of_ennrealToEReal_toENNReal_le_realToEReal h
-  simp only [ENat.toNat_coe]
+  simp only [ENat.toNat_natCast]
   change ((n : ℝ) : EReal) ≤ K at h
   exact_mod_cast h

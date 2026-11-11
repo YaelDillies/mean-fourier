@@ -12,7 +12,6 @@ public import MeanFourier.InvtMean.Riemann
 public import MeanFourier.InvtMean.UAPExtension
 public import MeanFourier.InvtMean.VonNeumann
 public import MeanFourier.Mathlib.Algebra.BigOperators.GroupWithZero.Finset
-public import MeanFourier.Mathlib.Algebra.Group.Action.Pointwise.Set.Basic
 public import MeanFourier.Mathlib.Algebra.Group.Pointwise.Set.Basic
 public import MeanFourier.Mathlib.Algebra.Module.Equiv.Basic
 public import MeanFourier.Mathlib.Analysis.Normed.Group.Bounded
@@ -24,6 +23,7 @@ public import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
 public import MeanFourier.Mathlib.Combinatorics.SetFamily.HausslerPacking
 public import MeanFourier.Mathlib.Data.ENat.BigOperators
 public import MeanFourier.Mathlib.Data.ENat.Monoid
+public import MeanFourier.Mathlib.Data.EReal.Basic
 public import MeanFourier.Mathlib.Data.Finset.Pi
 public import MeanFourier.Mathlib.Data.Fintype.BigOperators
 public import MeanFourier.Mathlib.Data.Fintype.Pi

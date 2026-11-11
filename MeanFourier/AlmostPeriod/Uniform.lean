@@ -11,8 +11,8 @@ public import Mathlib.Topology.MetricSpace.CoveringNumbers
 public import MeanFourier.AlmostConvergent
 public import MeanFourier.Mathlib.Topology.MetricSpace.Pseudo.Defs
 
+import AddCombi.Mathlib.Algebra.Group.Action.Pointwise.Set.Basic
 import AddCombi.Mathlib.Combinatorics.Additive.CovBySMul
-import MeanFourier.Mathlib.Algebra.Group.Action.Pointwise.Set.Basic
 import MeanFourier.Mathlib.Analysis.Normed.Group.Bounded
 import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
 import MeanFourier.Mathlib.Topology.MetricSpace.CoveringNumbers
