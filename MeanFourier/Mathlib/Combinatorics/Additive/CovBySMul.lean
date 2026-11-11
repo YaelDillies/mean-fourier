@@ -3,8 +3,8 @@ module
 public import Mathlib.Combinatorics.Additive.CovBySMul
 public import Mathlib.Topology.MetricSpace.CoveringNumbers
 
-import Mathlib.Tactic.Group
-import MeanFourier.Mathlib.Data.EReal.Basic
+import AddCombi.Mathlib.Algebra.Group.Action.Pointwise.Set.Basic
+import Mathlib.Algebra.Group.Pointwise.Set.Card
 
 public section
 
@@ -15,72 +15,25 @@ variable {G X : Type*} [Group G] [PseudoMetricSpace G] [IsIsometricSMul Gᵐᵒ�
 
 lemma smul_closedBall_eq_univ_iff_isCover (hε : 0 ≤ ε) (x₀ : G) {F : Set G} :
     F • closedBall x₀ ε = .univ ↔ IsCover ε.toNNReal .univ F⁻¹ := by
-  refine ⟨fun h x _ ↦ ?_, fun h ↦ ?_⟩
-  · have h_sub : Set.univ ⊆ F • closedBall x₀ ε := h.symm.subset
-    obtain ⟨g, hg, y, hy, hxy⟩ := Set.mem_smul.mp (h_sub (Set.mem_univ (x⁻¹ * x₀)))
-    refine ⟨g⁻¹, by simp [hg], ?_⟩
-    simp only [Set.mem_ofPred_eq]
-    have hxy' : g⁻¹ * x⁻¹ * x₀ = y := by rw [mul_assoc, ← hxy, smul_eq_mul, inv_mul_cancel_left]
-    rw [edist_le_coe, ← dist_le_coe, Real.coe_toNNReal _ hε]
-    rw [mem_closedBall] at hy
-    rw [← hxy'] at hy
-    have : dist (g⁻¹ * x⁻¹ * x₀) x₀ = dist g⁻¹ x := by
-      have h_dist := dist_mul_right (g⁻¹ * x⁻¹) 1 x₀
-      rw [one_mul] at h_dist
-      have h1 : dist (g⁻¹ * x⁻¹) 1 = dist (g⁻¹ * x⁻¹ * x) (1 * x) :=
-        (dist_mul_right _ _ _).symm
-      rw [one_mul] at h1
-      have h2 : g⁻¹ * x⁻¹ * x = g⁻¹ := by group
-      rw [h2] at h1
-      rw [h_dist, h1]
-    rwa [this, dist_comm] at hy
-  · rw [Set.eq_univ_iff_forall]
-    intro x
-    obtain ⟨g_inv, hg_inv, hdist⟩ := h (Set.mem_univ (x₀ * x⁻¹))
-    refine ⟨g_inv⁻¹, hg_inv, g_inv * x, ?_, by simp⟩
-    rw [mem_closedBall]
-    have h_eq : dist (g_inv * x) x₀ = dist g_inv (x₀ * x⁻¹) := by
-      have h1 : dist g_inv (x₀ * x⁻¹) = dist (g_inv * x) (x₀ * x⁻¹ * x) :=
-        (dist_mul_right _ _ _).symm
-      have h2 : x₀ * x⁻¹ * x = x₀ := by group
-      rw [h2] at h1
-      exact h1.symm
-    rw [h_eq, dist_comm]
-    simp only [Set.mem_ofPred_eq] at hdist
-    rwa [edist_le_coe, ← dist_le_coe, Real.coe_toNNReal _ hε] at hdist
+  have (g y : G) : dist (g⁻¹ * y) x₀ = dist (x₀ * y⁻¹) g⁻¹ := by
+    rw [dist_comm, ← dist_mul_right _ _ y⁻¹, mul_inv_cancel_right]
+  simp only [IsCover, SetRel.IsCover, Set.eq_univ_iff_forall, Set.mem_univ, true_imp_iff,
+    Set.mem_smul_iff_inv_smul_mem]
+  refine ((Equiv.inv G).trans (.mulLeft x₀)).forall_congr fun y ↦ ?_
+  simp [this, Real.le_toNNReal_iff_coe_le hε]
 
 @[simp]
 lemma covBySMul_univ_closedBall_iff (hε : 0 ≤ ε) (x₀ : G) :
     CovBySMul G K .univ (closedBall x₀ ε) ↔
       (coveringNumber ε.toNNReal (.univ : Set G) : EReal) ≤ K := by
   classical
-  refine ⟨?_, ?_⟩
-  · rintro ⟨F, hF, h_cover⟩
-    rw [Set.univ_subset_iff] at h_cover
-    rw [smul_closedBall_eq_univ_iff_isCover hε x₀] at h_cover
-    have h_card : ((F : Set G)⁻¹).encard = F.card := by
-      rw [← Set.inv_preimage, Set.encard_preimage_of_bijective inv_bijective,
-        Set.encard_coe_eq_coe_finsetCard]
-    have h_le : (coveringNumber ε.toNNReal (.univ : Set G) : EReal) ≤ ((F.card : ℕ∞) : EReal) :=
-      mod_cast h_card ▸ h_cover.coveringNumber_le_encard (Set.subset_univ _)
-    have hF_cast : ((F.card : ℕ∞) : EReal) ≤ K := by
-      change (F.card : EReal) ≤ K
-      exact_mod_cast hF
-    exact h_le.trans hF_cast
-  · intro h
-    have h_ne_top : coveringNumber ε.toNNReal (.univ : Set G) ≠ ⊤ :=
-      fun h_top ↦ by simp [h_top] at h
-    set F' : Finset G := (finite_minimalCover (A := .univ) (ε := ε.toNNReal)).toFinset
-    have hF'_card_top : (F'.card : ℕ∞) = coveringNumber ε.toNNReal (.univ : Set G) := by
-      rw [← Set.encard_coe_eq_coe_finsetCard, Set.Finite.coe_toFinset, encard_minimalCover h_ne_top]
-    have h_cover : IsCover ε.toNNReal (.univ : Set G) (F' : Set G) := by
-      rw [Set.Finite.coe_toFinset]
-      exact isCover_minimalCover h_ne_top
-    refine ⟨F'.image (·⁻¹), ?_, ?_⟩
-    · rw [Finset.card_image_of_injective F' inv_injective]
-      have : F'.card = (coveringNumber ε.toNNReal (.univ : Set G)).toNat :=
-        congrArg ENat.toNat hF'_card_top
-      rw [this]
-      exact ENat.natCast_toNat_le_of_ennrealToEReal_toENNReal_le_realToEReal h
-    · rw [Set.univ_subset_iff, smul_closedBall_eq_univ_iff_isCover hε x₀]
-      simpa using h_cover
+  simp_rw [CovBySMul, Set.univ_subset_iff, smul_closedBall_eq_univ_iff_isCover hε]
+  refine ⟨fun ⟨F, hF, hFcov⟩ ↦ ?_, fun h ↦ ?_⟩
+  · have := hFcov.coveringNumber_le_encard (Set.subset_univ _)
+    rw [Set.encard_inv, Set.encard_coe_eq_coe_finsetCard] at this
+    exact (mod_cast this : (_ : EReal) ≤ (#F : ℕ∞)).trans (EReal.coe_le_coe_iff.2 hF)
+  · obtain ⟨C, -, hCfin, hC, hCcard⟩ :=
+      exists_set_encard_eq_coveringNumber (ε := ε.toNNReal) (A := .univ) fun h' ↦ by
+        rw [h'] at h; simp at h
+    rw [← hCcard, ← hCfin.coe_toFinset, Set.encard_coe_eq_coe_finsetCard] at h
+    exact ⟨hCfin.toFinset⁻¹, by simpa using EReal.coe_le_coe_iff.1 h, by simpa using hC⟩
