@@ -417,12 +417,10 @@ variable [MetricSpace G] [IsIsometricSMul Gᵐᵒᵖ G] {δ : ℝ → ℝ}
 
 lemma closedBall_one_subset_uniformAP_of_isUniformContinuousWith (hf : IsUniformContinuousWith δ f)
     (hε : 0 < ε) : closedBall 1 (δ ε) ⊆ AP∞(f, ε) := by
-  rintro t ht x
-  rw [mem_closedBall'] at ht
+  intro t ht x
+  simp only [mem_closedBall'] at ht ⊢
   refine hf hε ?_
-  convert ht using 1
-  rw [← dist_mul_right _ _ x⁻¹, mul_inv_cancel_right, mul_inv_cancel, ← dist_mul_right _ _ t]
-  simp
+  grind [dist_mul_right, mul_inv_cancel_right, mul_inv_cancel]
 
 variable [CompactSpace G]
 
@@ -432,7 +430,8 @@ protected lemma Metric.IsUniformContinuousWith.isUAPWith (hδ : ∀ ε > 0, 0 < 
     IsUAPWith (fun ε ↦ (coveringNumber (δ ε).toNNReal (.univ : Set G)).toNat) f := by
   rintro ε hε
   grw [← closedBall_one_subset_uniformAP_of_isUniformContinuousWith hf hε]
-  simpa [(hδ _ hε).le] using isCompact_univ.totallyBounded.coveringNumber_ne_top <| by simp [*]
+  simpa [covBySMul_univ_closedBall_iff (hδ ε hε).le] using
+    isCompact_univ.totallyBounded.coveringNumber_ne_top (Real.toNNReal_pos.mpr (hδ ε hε)).ne'
 
 @[fun_prop]
 protected lemma UniformContinuous.isUAP (hf : UniformContinuous f) : IsUAP f := by
