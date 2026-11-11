@@ -9,6 +9,7 @@ public import AddCombi.VCDim.Additive.Defs
 public import MeanFourier.BohrSet.Defs
 public import MeanFourier.InvtMean.Foelner
 
+import MeanFourier.Mathlib.Combinatorics.SetFamily.HausslerPacking
 
 /-!
 # Arithmetic regularity for translation-regular dense sets of small VC dimension
