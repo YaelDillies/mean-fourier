@@ -15,7 +15,7 @@ import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 
 public section
 
-open scoped ENNReal NNReal Finset
+open scoped ENNReal NNReal Finset Pointwise
 
 variable {G : Type*}
 
