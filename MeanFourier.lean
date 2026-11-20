@@ -26,7 +26,6 @@ public import MeanFourier.Mathlib.Data.EReal.Basic
 public import MeanFourier.Mathlib.Data.Finset.Pi
 public import MeanFourier.Mathlib.Data.Fintype.BigOperators
 public import MeanFourier.Mathlib.Data.Fintype.Pi
-public import MeanFourier.Mathlib.Data.Set.Basic
 public import MeanFourier.Mathlib.Data.Set.Prod
 public import MeanFourier.Mathlib.MeasureTheory.Group.FoelnerFilter
 public import MeanFourier.Mathlib.Topology.Algebra.Module.Equiv.Basic
