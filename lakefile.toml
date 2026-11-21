@@ -22,11 +22,12 @@ git = "https://github.com/PatrickMassot/checkdecls.git"
 [[require]]
 name = "AddCombi"
 git = "https://github.com/leanprover-community/add-combi.git"
+rev = "b044a7652774fe549bf7e7e4d7d3015983cd00ac"
 
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4.git"
-rev = "57870a3ef03fd19e8bb00cd07e878f8b358c18f4"
+rev = "4694f18024a16d41993787c8f5e0e905a729f904"
 
 [[lean_lib]]
 name = "MeanFourier"
