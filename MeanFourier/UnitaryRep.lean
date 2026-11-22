@@ -109,7 +109,7 @@ lemma comp_apply (f : A ⟶ B) (g : B ⟶ C) (a : A) : (f ≫ g) a = g (f a) := 
 @[ext] lemma hom_ext {f g : A ⟶ B} (hf : f.hom = g.hom) : f = g := Hom.ext hf
 
 lemma hom_comm_apply (f : A ⟶ B) (g : G) (a : A) : f.hom (A.ρ g a) = B.ρ g (f.hom a) := by
-  simpa using congr($(f.hom.2 g) a)
+  simpa using congr($(f.hom.isIntertwining' g) a)
 
 @[simp] lemma hom_ofHom (f : ρ.toRepresentation.IntertwiningMap σ.toRepresentation) :
     (ofHom f).hom = f := rfl

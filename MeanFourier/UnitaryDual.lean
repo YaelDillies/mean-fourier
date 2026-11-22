@@ -29,18 +29,18 @@ section Group
 variable [Group G] {ψ : UnitaryDual 𝕜 G}
 
 variable (ψ) in
-protected def E : Type _ := ψ.out.1.E
+protected def E : Type _ := ψ.out.obj.E
 
-@[no_expose] instance : NormedAddCommGroup ψ.E := ψ.out.1.normedAddCommGroup
-@[no_expose] instance : InnerProductSpace 𝕜 ψ.E := ψ.out.1.innerProductSpace
+@[no_expose] instance : NormedAddCommGroup ψ.E := ψ.out.obj.normedAddCommGroup
+@[no_expose] instance : InnerProductSpace 𝕜 ψ.E := ψ.out.obj.innerProductSpace
 
-instance : CompleteSpace ψ.E := ψ.out.1.completeSpace
+instance : CompleteSpace ψ.E := ψ.out.obj.completeSpace
 instance : FiniteDimensional 𝕜 ψ.E := sorry
 
 variable (ψ) in
-protected def ρ : UnitaryRepresentation 𝕜 G ψ.E := ψ.out.1.ρ
+protected def ρ : UnitaryRepresentation 𝕜 G ψ.E := ψ.out.obj.ρ
 
-@[simp] lemma isIrreducible_ρ : ψ.ρ.toRepresentation.IsIrreducible := ψ.out.2
+@[simp] lemma isIrreducible_ρ : ψ.ρ.toRepresentation.IsIrreducible := ψ.out.property
 
 instance : Nontrivial ψ.E := sorry
 
