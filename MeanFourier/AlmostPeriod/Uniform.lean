@@ -9,11 +9,16 @@ public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import Mathlib.Combinatorics.Additive.CovBySMul
 public import Mathlib.Topology.MetricSpace.CoveringNumbers
 public import MeanFourier.AlmostConvergent
+public import MeanFourier.Mathlib.Algebra.Star.Pi
+public import MeanFourier.Mathlib.Data.Finset.Lattice.Fold
 public import MeanFourier.Mathlib.Topology.MetricSpace.Pseudo.Defs
 
 import AddCombi.Mathlib.Algebra.Group.Action.Pointwise.Set.Basic
 import AddCombi.Mathlib.Combinatorics.Additive.CovBySMul
 import MeanFourier.Mathlib.Analysis.Normed.Group.Bounded
+import MeanFourier.Mathlib.Analysis.Normed.Order.Lattice
+import MeanFourier.Mathlib.Analysis.Normed.Ring.Lipschitz
+import MeanFourier.Mathlib.Analysis.SpecialFunctions.Pow.Deriv
 import MeanFourier.Mathlib.Combinatorics.Additive.CovBySMul
 import MeanFourier.Mathlib.Topology.MetricSpace.CoveringNumbers
 
@@ -177,6 +182,7 @@ lemma IsUAPWith.of_tendstoUniformly {ι : Type*} {p : Filter ι} [p.NeBot] {u : 
 /-! #### Operations on the domain -/
 
 /-- Almost-periodicity is quantitatively preserved by precomposition with a group isomorphism. -/
+@[fun_prop]
 lemma IsUAPWith.comp_mulEquiv {φ : H ≃* G} (hf : IsUAPWith K f) : IsUAPWith K (f ∘ φ) := by
   classical
   intro ε hε
@@ -444,6 +450,45 @@ protected lemma Continuous.isUAP (hf : Continuous f) : IsUAP f :=
 
 end MetricSpace
 
+/-! ### Functions to a finite product -/
+
+section Pi
+variable {ι : Type*} [Fintype ι] {X : ι → Type*} [∀ i, MetricSpace (X i)]
+  {f : G → ∀ i, X i} {ε : ℝ}
+
+/-- The `ε`-almost-periods of a function to a finite product are the common `ε`-almost-periods of
+its coordinates. -/
+lemma uniformAP_pi (hε : 0 ≤ ε) : AP∞(f, ε) = ⋂ i, AP∞(fun x ↦ f x i, ε) := by
+  ext t
+  simp only [Set.mem_iInter, mem_uniformAP]
+  exact ⟨fun h i x ↦ (dist_le_pi_dist _ _ i).trans (h x),
+    fun h x ↦ (dist_pi_le_iff hε).2 fun i ↦ h i x⟩
+
+/-- A `K`-almost-periodic function to a finite product is `K`-almost-periodic in each coordinate. -/
+protected lemma IsUAPWith.eval {K : ℝ → ℝ} (hf : IsUAPWith K f) (i : ι) :
+    IsUAPWith K (fun x ↦ f x i) := fun ε hε ↦
+  (hf hε).subset_right fun t (ht : t ∈ AP∞(f, ε)) x ↦ (dist_le_pi_dist _ _ i).trans (ht x)
+
+/-- If each coordinate of a function to a finite product is `Kᵢ`-almost-periodic, then the function
+is `(ε ↦ ∏ᵢ Kᵢ(ε / 2))`-almost-periodic. -/
+protected lemma IsUAPWith.pi {K : ι → ℝ → ℝ} (hf : ∀ i, IsUAPWith (K i) (fun x ↦ f x i)) :
+    IsUAPWith (fun ε ↦ ∏ i, K i (ε / 2)) f := fun ε hε ↦ by
+  rw [uniformAP_pi hε.le]
+  refine (CovBySMul.iInter (s := .univ) fun i _ ↦ hf i (half_pos hε)).subset_right ?_
+  simp only [Finset.mem_univ, Set.iInter_true, uniformAP_inv]
+  gcongr with i
+  grw [uniformAP_mul_uniformAP_subset, add_halves]
+
+/-- A function to a finite product is uniformly almost-periodic iff each of its coordinates is. -/
+lemma isUAP_pi_iff : IsUAP f ↔ ∀ i, IsUAP (fun x ↦ f x i) where
+  mp hf i := by obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact (hf.eval _).isUAP
+  mpr hf := by
+    choose K hf using fun i ↦ (hf i).exists_isUAPWith
+    exact (IsUAPWith.pi hf).isUAP
+
+end Pi
+end MetricSpace
+
 /-! ## Normed additive group codomain -/
 
 section NormedAddCommGroup
@@ -465,6 +510,29 @@ lemma inter_subset_uniformAP_add : AP∞(f, ε) ∩ AP∞(g, δ) ⊆ AP∞(f + g
     simp only [Pi.add_apply]; abel
   grw [this, norm_add_le, htf x, htg x]
 
+@[to_fun (attr := simp) uniformAP_fun_neg]
+lemma uniformAP_neg : AP∞(-f, ε) = AP∞(f, ε) := by
+  ext t; simp only [mem_uniformAP, Pi.neg_apply, dist_neg_neg]
+
+lemma inter_subset_uniformAP_sub : AP∞(f, ε) ∩ AP∞(g, δ) ⊆ AP∞(f - g, ε + δ) := by
+  rintro t ⟨htf, htg⟩ x
+  rw [mem_uniformAP_iff_norm] at htf htg
+  rw [dist_eq_norm]
+  have : (f - g) (t⁻¹ * x) - (f - g) x = (f (t⁻¹ * x) - f x) - (g (t⁻¹ * x) - g x) := by
+    simp only [Pi.sub_apply]; abel
+  grw [this, norm_sub_le, htf x, htg x]
+
+/-- A common `εᵢ`-almost period of finitely many functions is a `∑ᵢ εᵢ`-almost period of their sum.
+-/
+lemma iInter_subset_uniformAP_sum {s : Finset ι} {ε : ι → ℝ} {f : ι → G → E} :
+    ⋂ i ∈ s, AP∞(f i, ε i) ⊆ AP∞(∑ i ∈ s, f i, ∑ i ∈ s, ε i) := by
+  classical
+  induction s using Finset.induction with
+  | empty => simp
+  | insert j s hj ih =>
+    grw [Finset.set_biInter_insert, Finset.sum_insert hj, Finset.sum_insert hj, ih,
+      inter_subset_uniformAP_add]
+
 variable (f) in
 @[to_fun (attr := simp) uniformAP_fun_smul]
 lemma uniformAP_smul [NormedSpace 𝕜 E] (hc : c ≠ 0) : AP∞(c • f, ε) = AP∞(f, ε / ‖c‖) := by
@@ -474,6 +542,12 @@ lemma uniformAP_smul [NormedSpace 𝕜 E] (hc : c ≠ 0) : AP∞(c • f, ε) = 
 
 @[simp, fun_prop]
 protected lemma IsUAPWith.zero : IsUAPWith 1 (0 : G → E) := .const
+
+@[to_fun (attr := simp)]
+lemma isUAPWith_neg : IsUAPWith K (-f) ↔ IsUAPWith K f := by simp [IsUAPWith]
+
+@[to_fun (attr := fun_prop)]
+protected alias ⟨_, IsUAPWith.neg⟩ := isUAPWith_neg
 
 /-- The sum of a `K`- and an `L`-almost-periodic function is
 `ε ↦ K (ε / 4) * L (ε / 4)`-almost-periodic. -/
@@ -487,6 +561,25 @@ protected lemma IsUAPWith.add (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
     inter_subset_uniformAP_add]
   grind
 
+/-- A finite sum of uniformly almost-periodic functions is quantitatively uniformly almost-periodic.
+-/
+protected lemma IsUAPWith.sum {s : Finset ι} (hs : s.Nonempty) {K : ι → ℝ → ℝ} {f : ι → G → E}
+    (h : ∀ i ∈ s, IsUAPWith (K i) (f i)) :
+    IsUAPWith (fun ε ↦ ∏ i ∈ s, K i (ε / #s / 2)) (∑ i ∈ s, f i) := by
+  rintro ε hε
+  have hcov : CovBySMul G (∏ i ∈ s, K i (ε / #s / 2)) .univ (⋂ i ∈ s, AP∞(f i, ε / #s)) := by
+    refine (CovBySMul.iInter fun i hi ↦ h i hi <| by positivity).subset_right <|
+      Set.iInter₂_mono fun i hi ↦ ?_
+    rw [uniformAP_inv]
+    grw [uniformAP_mul_uniformAP_subset]
+    ring_nf
+    rfl
+  refine hcov.subset_right ?_
+  grw [iInter_subset_uniformAP_sum]
+  simp
+  field_simp
+  rfl
+
 @[to_fun]
 protected lemma IsUAPWith.smul [NormedSpace 𝕜 E] (hf : IsUAPWith K f) (hc : c ≠ 0) :
     IsUAPWith (fun ε ↦ K <| ε / ‖c‖) (c • f) := by
@@ -498,11 +591,27 @@ protected lemma IsUAPWith.smul [NormedSpace 𝕜 E] (hf : IsUAPWith K f) (hc : c
 
 @[simp, fun_prop] protected lemma IsUAP.zero : IsUAP (0 : G → E) := .const
 
+@[to_fun (attr := simp)]
+lemma isUAP_neg : IsUAP (-f) ↔ IsUAP f := by simp [IsUAP]
+
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.neg (hf : IsUAP f) : IsUAP (-f) := by
+  obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.neg.isUAP
+
 @[to_fun (attr := fun_prop)]
 protected lemma IsUAP.add (hf : IsUAP f) (hg : IsUAP g) : IsUAP (f + g) := by
   obtain ⟨K, hf⟩ := hf.exists_isUAPWith
   obtain ⟨L, hg⟩ := hg.exists_isUAPWith
   exact (hf.add hg).isUAP
+
+/-- A finite sum of uniformly almost-periodic functions is uniformly almost-periodic. -/
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.sum {s : Finset ι} {f : ι → G → E} (h : ∀ i ∈ s, IsUAP (f i)) :
+    IsUAP (∑ i ∈ s, f i) := by
+  obtain rfl | hs := s.eq_empty_or_nonempty
+  · simp
+  · choose! K hf using fun i hi ↦ (h i hi).exists_isUAPWith
+    exact (IsUAPWith.sum hs hf).isUAP
 
 @[to_fun (attr := fun_prop)]
 protected lemma IsUAP.smul [NormedSpace 𝕜 E] (hf : IsUAP f) : IsUAP (c • f) := by
@@ -516,27 +625,183 @@ protected lemma IsUAP.isAlmostConvergent [NormedSpace ℝ E] (hf : IsUAP f) :
     IsAlmostConvergent f := by
   sorry
 
+/-! ### Postcomposition with a normed group operation -/
+
+/-- The difference of a `K`- and an `L`-almost-periodic function is
+`ε ↦ K (ε / 4) * L (ε / 4)`-almost-periodic. -/
+@[to_fun]
+protected lemma IsUAPWith.sub (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
+    IsUAPWith (fun ε ↦ K (ε / 4) * L (ε / 4)) (f - g) := by
+  rw [sub_eq_add_neg]; exact hf.add hg.neg
+
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.sub (hf : IsUAP f) (hg : IsUAP g) : IsUAP (f - g) := by
+  rw [sub_eq_add_neg]; exact hf.add hg.neg
+
 /-! ### Star -/
 
 section Star
 variable [StarAddMonoid E] [NormedStarGroup E]
 
-@[simp] lemma uniformAP_star : AP∞(fun x ↦ star (f x), ε) = AP∞(f, ε) := by
-  ext t; simp only [mem_uniformAP_iff_norm, ← star_sub, norm_star]
+@[to_fun (attr := simp) uniformAP_fun_star]
+lemma uniformAP_star : AP∞(star f, ε) = AP∞(f, ε) := by
+  ext t; simp [mem_uniformAP_iff_norm, ← star_sub]
 
-@[fun_prop]
-protected lemma IsUAPWith.star (hf : IsUAPWith K f) : IsUAPWith K (fun x ↦ star (f x)) := by
-  simpa only [IsUAPWith, uniformAP_star] using hf
+@[to_fun (attr := simp) isUAPWith_fun_star]
+lemma isUAPWith_star : IsUAPWith K (star f) ↔ IsUAPWith K f := by simp [IsUAPWith]
 
-@[fun_prop]
-protected lemma IsUAP.star (hf : IsUAP f) : IsUAP (fun x ↦ star (f x)) := by
-  obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.star.isUAP
+@[fun_prop] protected alias ⟨_, IsUAPWith.star⟩ := isUAPWith_star
+
+@[to_fun (attr := simp) isUAP_fun_star]
+lemma isUAP_star : IsUAP (star f) ↔ IsUAP f := by simp [IsUAP]
+
+@[fun_prop] protected alias ⟨_, IsUAP.star⟩ := isUAP_star
 
 end Star
-end NormedAddCommGroup
+
+/-! ## Lattice codomain -/
+
+section Lattice
+variable [Lattice E] [HasSolidNorm E] [IsOrderedAddMonoid E]
+
+/-! ### Uniform almost-periods -/
+
+/-- A common `εᵢ`-almost period of a nonempty finite family of functions is a `∑ᵢ εᵢ`-almost period
+of their pointwise supremum. -/
+lemma iInter_subset_uniformAP_finsetSup' {s : Finset ι} (hs : s.Nonempty) {g : ι → G → E}
+    {ε : ι → ℝ} : ⋂ i ∈ s, AP∞(g i, ε i) ⊆ AP∞(s.sup' hs g, ∑ i ∈ s, ε i) := by
+  intro t ht x
+  rw [Set.mem_iInter₂] at ht
+  rw [dist_eq_norm, Finset.sup'_apply, Finset.sup'_apply]
+  calc ‖s.sup' hs (fun i ↦ g i (t⁻¹ * x)) - s.sup' hs (fun i ↦ g i x)‖
+      ≤ ∑ i ∈ s, ‖g i (t⁻¹ * x) - g i x‖ := norm_finsetSup'_sub_finsetSup'_le hs _ _
+    _ ≤ ∑ i ∈ s, ε i := Finset.sum_le_sum fun i hi ↦ by rw [← dist_eq_norm]; exact ht i hi x
+
+/-- A common `εᵢ`-almost period of a nonempty finite family of functions is a `∑ᵢ εᵢ`-almost period
+of their pointwise infimum. -/
+lemma iInter_subset_uniformAP_finsetInf' {s : Finset ι} (hs : s.Nonempty) {g : ι → G → E}
+    {ε : ι → ℝ} : ⋂ i ∈ s, AP∞(g i, ε i) ⊆ AP∞(s.inf' hs g, ∑ i ∈ s, ε i) := by
+  intro t ht x
+  rw [Set.mem_iInter₂] at ht
+  rw [dist_eq_norm, Finset.inf'_apply, Finset.inf'_apply]
+  calc ‖s.inf' hs (fun i ↦ g i (t⁻¹ * x)) - s.inf' hs (fun i ↦ g i x)‖
+      ≤ ∑ i ∈ s, ‖g i (t⁻¹ * x) - g i x‖ := norm_finsetInf'_sub_finsetInf'_le hs _ _
+    _ ≤ ∑ i ∈ s, ε i := Finset.sum_le_sum fun i hi ↦ by rw [← dist_eq_norm]; exact ht i hi x
+
+/-! ### Quantitative uniformly almost-periodic functions -/
+
+/-- The pointwise supremum of a `K`- and an `L`-almost-periodic function is
+`ε ↦ K (ε / 4) * L (ε / 4)`-almost-periodic. -/
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAPWith.sup (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
+    IsUAPWith (fun ε ↦ K (ε / 4) * L (ε / 4)) (f ⊔ g) := by
+  convert (hf.prodMk hg).lipschitzOnWith_comp two_pos (fun _ ↦ Set.mem_univ _)
+    lipschitzWith_uncurry_sup.lipschitzOnWith using 3
+    <;> simp [Pi.sup_def, Function.comp_def] <;> ring_nf
+
+/-- The pointwise infimum of a `K`- and an `L`-almost-periodic function is
+`ε ↦ K (ε / 4) * L (ε / 4)`-almost-periodic. -/
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAPWith.inf (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
+    IsUAPWith (fun ε ↦ K (ε / 4) * L (ε / 4)) (f ⊓ g) := by
+  convert (hf.prodMk hg).lipschitzOnWith_comp two_pos (fun _ ↦ Set.mem_univ _)
+    lipschitzWith_uncurry_inf.lipschitzOnWith using 3
+    <;> simp [Pi.inf_def, Function.comp_def] <;> ring_nf
+
+/-- The positive part of a `K`-almost-periodic function is `K`-almost-periodic. -/
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAPWith.posPart (hf : IsUAPWith K f) : IsUAPWith K f⁺ :=
+  (hf.lipschitzOnWith_comp one_pos (fun _ ↦ Set.mem_univ _)
+    lipschitzWith_posPart.lipschitzOnWith).mono fun ε _ ↦ le_of_eq (by rw [NNReal.coe_one, div_one])
+
+/-- The negative part of a `K`-almost-periodic function is `K`-almost-periodic. -/
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAPWith.negPart (hf : IsUAPWith K f) : IsUAPWith K f⁻ :=
+  (hf.lipschitzOnWith_comp one_pos (fun _ ↦ Set.mem_univ _)
+    lipschitzWith_negPart.lipschitzOnWith).mono fun ε _ ↦ le_of_eq (by rw [NNReal.coe_one, div_one])
+
+/-- The pointwise supremum of a nonempty finite family of uniformly almost-periodic functions is
+`ε ↦ ∏ᵢ Kᵢ(ε / #s / 2)`-almost-periodic. -/
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAPWith.finsetSup' {s : Finset ι} (hs : s.Nonempty) {K : ι → ℝ → ℝ}
+    {g : ι → G → E} (h : ∀ i ∈ s, IsUAPWith (K i) (g i)) :
+    IsUAPWith (fun ε ↦ ∏ i ∈ s, K i (ε / #s / 2)) (s.sup' hs g) := by
+  rintro ε hε
+  have hcov : CovBySMul G (∏ i ∈ s, K i (ε / #s / 2)) .univ (⋂ i ∈ s, AP∞(g i, ε / #s)) := by
+    refine (CovBySMul.iInter fun i hi ↦ h i hi <| by positivity).subset_right <|
+      Set.iInter₂_mono fun i hi ↦ ?_
+    rw [uniformAP_inv]
+    grw [uniformAP_mul_uniformAP_subset]
+    ring_nf
+    rfl
+  refine hcov.subset_right ?_
+  grw [iInter_subset_uniformAP_finsetSup' hs]
+  simp
+  field_simp
+  rfl
+
+/-- The pointwise infimum of a nonempty finite family of uniformly almost-periodic functions is
+`ε ↦ ∏ᵢ Kᵢ(ε / #s / 2)`-almost-periodic. -/
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAPWith.finsetInf' {s : Finset ι} (hs : s.Nonempty) {K : ι → ℝ → ℝ}
+    {g : ι → G → E} (h : ∀ i ∈ s, IsUAPWith (K i) (g i)) :
+    IsUAPWith (fun ε ↦ ∏ i ∈ s, K i (ε / #s / 2)) (s.inf' hs g) := by
+  rintro ε hε
+  have hcov : CovBySMul G (∏ i ∈ s, K i (ε / #s / 2)) .univ (⋂ i ∈ s, AP∞(g i, ε / #s)) := by
+    refine (CovBySMul.iInter fun i hi ↦ h i hi <| by positivity).subset_right <|
+      Set.iInter₂_mono fun i hi ↦ ?_
+    rw [uniformAP_inv]
+    grw [uniformAP_mul_uniformAP_subset]
+    ring_nf
+    rfl
+  refine hcov.subset_right ?_
+  grw [iInter_subset_uniformAP_finsetInf' hs]
+  simp
+  field_simp
+  rfl
+
+/-! ### Qualitative uniformly almost-periodic functions -/
+
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.sup (hf : IsUAP f) (hg : IsUAP g) : IsUAP (f ⊔ g) := by
+  obtain ⟨K, hf⟩ := hf.exists_isUAPWith
+  obtain ⟨L, hg⟩ := hg.exists_isUAPWith
+  exact (hf.sup hg).isUAP
+
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.inf (hf : IsUAP f) (hg : IsUAP g) : IsUAP (f ⊓ g) := by
+  obtain ⟨K, hf⟩ := hf.exists_isUAPWith
+  obtain ⟨L, hg⟩ := hg.exists_isUAPWith
+  exact (hf.inf hg).isUAP
+
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.posPart (hf : IsUAP f) : IsUAP f⁺ := by
+  obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.posPart.isUAP
+
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.negPart (hf : IsUAP f) : IsUAP f⁻ := by
+  obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact hf.negPart.isUAP
+
+/-- The pointwise supremum of a nonempty finite family of UAP functions is UAP. -/
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.finsetSup' {s : Finset ι} (hs : s.Nonempty) {g : ι → G → E}
+    (h : ∀ i ∈ s, IsUAP (g i)) : IsUAP (s.sup' hs g) :=
+  Finset.sup'_induction hs _ (fun _ ha _ hb ↦ IsUAP.sup ha hb) h
+
+/-- The pointwise infimum of a nonempty finite family of UAP functions is UAP. -/
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.finsetInf' {s : Finset ι} (hs : s.Nonempty) {g : ι → G → E}
+    (h : ∀ i ∈ s, IsUAP (g i)) : IsUAP (s.inf' hs g) :=
+  Finset.inf'_induction hs _ (fun _ ha _ hb ↦ IsUAP.inf ha hb) h
+
+end Lattice
+
+/-! ## Normed ring codomain -/
 
 section NormedRing
 variable [NormedRing R] {f g : G → R} {ε : ℝ}
+
+/-! ### Uniform almost-periods -/
 
 /-- If `t` is an `ε`-almost-period of a `Bf`-bounded function `f` and a `δ`-almost-period of a
 `Bg`-bounded function `g`, then it is a `Bg * ε + Bf * δ`-almost-period of `f * g`. -/
@@ -553,26 +818,43 @@ lemma inter_subset_uniformAP_mul {Bf Bg δ : ℝ} (hfb : ∀ x, ‖f x‖ ≤ Bf
     _ ≤ Bf * δ + ε * Bg := by grw [norm_add_le, norm_mul_le, norm_mul_le, hfb, htg x, htf x, hgb x]
     _ = Bg * ε + Bf * δ := by ring
 
-/-- The product of two uniformly almost-periodic functions is uniformly almost-periodic,
-with an explicit modulus depending on the bounds on the norms of `f` and `g`. -/
+/-! ### Quantitative uniformly almost-periodic functions -/
+
+/-- The product of a `K`- and an `L`-almost-periodic function is uniformly almost-periodic, with an
+explicit modulus depending on the bounds on the norms of `f` and `g`. -/
+@[to_fun]
 protected lemma IsUAPWith.mul {Bf Bg : ℝ} (hfb : ∀ x, ‖f x‖ ≤ Bf) (hgb : ∀ x, ‖g x‖ ≤ Bg)
     (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
-    IsUAPWith (fun ε ↦ K (ε / (4 * (Bf + Bg + 1))) * L (ε / (4 * (Bf + Bg + 1)))) (f * g) := by
-  have hBf : 0 ≤ Bf := by grw [← hfb 1, ← norm_nonneg]
-  have hBg : 0 ≤ Bg := by grw [← hgb 1, ← norm_nonneg]
-  have hden : (0 : ℝ) < 4 * (Bf + Bg + 1) := by linarith
-  rintro ε hε
-  set δ := ε / (4 * (Bf + Bg + 1)) with hδ_def
-  refine ((hf (ε := δ) (by positivity)).inter (hg (ε := δ) (by positivity))).subset_right ?_
-  grw [uniformAP_inv, uniformAP_inv, uniformAP_mul_uniformAP_subset, uniformAP_mul_uniformAP_subset,
-    inter_subset_uniformAP_mul hfb hgb]
-  intro t ht x
-  have hge : Bg * (δ + δ) + Bf * (δ + δ) = 2 * (Bf + Bg) * ε / (4 * (Bf + Bg + 1)) := by ring
-  grw [ht x, hge]
-  field_simp
-  nlinarith [hBf, hBg, hε]
+    IsUAPWith (fun ε ↦ K (ε / (Bf + Bg + 1) / 2) * L (ε / (Bf + Bg + 1) / 2)) (f * g) := by
+  have hBf : 0 ≤ Bf := (norm_nonneg _).trans (hfb 1)
+  have hBg : 0 ≤ Bg := (norm_nonneg _).trans (hgb 1)
+  have hC : (0 : ℝ≥0) < Bf.toNNReal + Bg.toNNReal + 1 := by positivity
+  have hlip : LipschitzOnWith (Bf.toNNReal + Bg.toNNReal + 1) (fun p : R × R ↦ p.1 * p.2)
+      {p | ‖p.1‖ ≤ Bf ∧ ‖p.2‖ ≤ Bg} := by
+    have base := lipschitzOnWith_uncurry_mul (R := R) (Bf := Bf.toNNReal) (Bg := Bg.toNNReal)
+    rw [lipschitzOnWith_iff_dist_le_mul] at base ⊢
+    refine fun p hp q hq ↦ (base p ?_ q ?_).trans ?_
+    · simpa [Real.coe_toNNReal _ hBf, Real.coe_toNNReal _ hBg] using hp
+    · simpa [Real.coe_toNNReal _ hBf, Real.coe_toNNReal _ hBg] using hq
+    · exact mul_le_mul_of_nonneg_right (by push_cast; linarith) dist_nonneg
+  change IsUAPWith _ (fun x ↦ f x * g x)
+  simpa [Function.comp_def, NNReal.coe_add, NNReal.coe_one, Real.coe_toNNReal _ hBf,
+    Real.coe_toNNReal _ hBg] using (hf.prodMk hg).lipschitzOnWith_comp hC
+    (fun x ↦ show (f x, g x) ∈ {p : R × R | ‖p.1‖ ≤ Bf ∧ ‖p.2‖ ≤ Bg} from ⟨hfb x, hgb x⟩) hlip
 
-@[fun_prop]
+/-- A natural power of a `K`-almost-periodic function bounded above by `B` is
+`ε ↦ K (ε / (n * Bⁿ⁻¹ + 1))`-almost-periodic. -/
+@[to_fun]
+protected lemma IsUAPWith.pow {B : ℝ} (n : ℕ) (hfb : ∀ x, ‖f x‖ ≤ B) (hf : IsUAPWith K f) :
+    IsUAPWith (fun ε ↦ K (ε / (n * B ^ (n - 1) + 1))) (f ^ n) := by
+  have hB : 0 ≤ B := (norm_nonneg _).trans (hfb 1)
+  change IsUAPWith _ (fun x ↦ f x ^ n)
+  simpa [Function.comp_def] using hf.isUniformContinuousOnWith_comp
+    (fun ε hε ↦ by positivity) (fun x ↦ hfb x) (isUniformContinuousOnWith_pow n hB)
+
+/-! ### Qualitative uniformly almost-periodic functions -/
+
+@[to_fun (attr := fun_prop)]
 protected lemma IsUAP.mul (hf : IsUAP f) (hg : IsUAP g) : IsUAP (f * g) := by
   obtain ⟨Bf, hBf⟩ := hf.isBddFun.exists_forall_norm_le
   obtain ⟨Bg, hBg⟩ := hg.isBddFun.exists_forall_norm_le
@@ -580,12 +862,230 @@ protected lemma IsUAP.mul (hf : IsUAP f) (hg : IsUAP g) : IsUAP (f * g) := by
   obtain ⟨L, hg'⟩ := hg.exists_isUAPWith
   exact (hf'.mul hBf hBg hg').isUAP
 
+/-- A natural power of an almost-periodic function is almost-periodic. -/
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.pow (hf : IsUAP f) : ∀ n : ℕ, IsUAP (f ^ n)
+  | 0 => by simpa using IsUAP.const (z := (1 : R))
+  | n + 1 => by rw [pow_succ]; exact (hf.pow n).mul hf
+
 end NormedRing
 
+/-! ## Normed commutative ring codomain -/
+
 section NormedCommRing
-variable [NormedCommRing R] [StarRing R] [NormedStarGroup R] {f : G → R}
+variable [NormedCommRing R]
+
+/-! ### Uniform almost-periods -/
+
+/-- A common `εᵢ`-almost period of finitely many `Bᵢ`-bounded functions is an
+`∑ᵢ (∏_{j ≠ i} Bⱼ) εᵢ`-almost period of their product. -/
+lemma iInter_subset_uniformAP_prod [NormOneClass R] {ι : Type*} [DecidableEq ι] {s : Finset ι}
+    {g : ι → G → R} {B : ι → ℝ} {ε : ι → ℝ} (hB : ∀ i x, ‖g i x‖ ≤ B i) :
+    (⋂ i ∈ s, AP∞(g i, ε i)) ⊆
+      AP∞(∏ i ∈ s, g i, ∑ i ∈ s, (∏ j ∈ s.erase i, B j) * ε i) := by
+  have hprod (t : Finset ι) (x) : ‖(∏ i ∈ t, g i) x‖ ≤ ∏ i ∈ t, B i := by
+    grw [Finset.prod_apply, Finset.norm_prod_le]; gcongr with i; exact hB i x
+  induction s using Finset.induction with
+  | empty => simpa using uniformAP_const (1 : R) le_rfl
+  | insert j s hj ih =>
+    rw [Finset.set_biInter_insert, Finset.prod_insert hj]
+    have hbound : ∑ i ∈ insert j s, (∏ k ∈ (insert j s).erase i, B k) * ε i
+        = (∏ i ∈ s, B i) * ε j + B j * ∑ i ∈ s, (∏ k ∈ s.erase i, B k) * ε i := by
+      rw [Finset.sum_insert hj, Finset.erase_insert hj, Finset.mul_sum]
+      congr! 2 with i hi
+      rw [Finset.erase_insert_of_ne (ne_of_mem_of_not_mem hi hj).symm,
+        Finset.prod_insert fun hji ↦ hj (Finset.mem_of_mem_erase hji)]
+      ring
+    rw [hbound]
+    exact (Set.inter_subset_inter_right _ ih).trans
+      (inter_subset_uniformAP_mul (fun x ↦ hB j x) fun x ↦ hprod s x)
+
+/-! ### Quantitative uniformly almost-periodic functions -/
+
+omit [NormedCommRing R] in
+/-- Finitary `IsUAPWith.mul`: a finite product of uniformly almost-periodic functions is uniformly
+almost-periodic, with an explicit modulus depending on the bounds `Bᵢ` on the `gᵢ`. -/
+@[to_fun]
+protected lemma IsUAPWith.prod [NormedCommRing R] [NormOneClass R] {ι : Type*} [DecidableEq ι]
+    [Fintype ι] {g : ι → G → R} {B : ι → ℝ} {K : ι → ℝ → ℝ} (hB : ∀ i x, ‖g i x‖ ≤ B i)
+    (h : ∀ i, IsUAPWith (K i) (g i)) :
+    IsUAPWith (fun ε ↦ ∏ i, K i (ε / (∑ i, ∏ j ≠ i, B j + 1) / 2))
+      (∏ i, g i) := fun ε hε ↦ by
+  have hBnn (i) : 0 ≤ B i := (norm_nonneg _).trans (hB i 1)
+  set S := ∑ i, ∏ j ∈ Finset.univ.erase i, B j with hSdef
+  have hSnn : 0 ≤ S := Finset.sum_nonneg fun i _ ↦ Finset.prod_nonneg fun j _ ↦ hBnn j
+  have hδ : 0 < ε / (S + 1) := div_pos hε (by linarith)
+  have hcov : CovBySMul G (∏ i, K i (ε / (S + 1) / 2)) Set.univ (⋂ i, AP∞(g i, ε / (S + 1))) := by
+    refine (CovBySMul.iInter (s := Finset.univ) fun i _ ↦ h i (half_pos hδ)).subset_right ?_
+    simp only [Finset.mem_univ, Set.iInter_true]
+    exact Set.iInter_mono fun i ↦ by
+      rw [uniformAP_inv]
+      exact uniformAP_mul_uniformAP_subset.trans (subset_of_eq (by rw [add_halves]))
+  refine hcov.subset_right ?_
+  have hstep := iInter_subset_uniformAP_prod (s := Finset.univ) (g := g) (B := B)
+    (ε := fun _ ↦ ε / (S + 1)) hB
+  simp only [Finset.mem_univ, Set.iInter_true] at hstep
+  refine hstep.trans fun t ht x ↦ (ht x).trans ?_
+  rw [← Finset.sum_mul, ← hSdef, ← mul_div_assoc, div_le_iff₀ (by linarith : (0:ℝ) < S + 1)]
+  nlinarith [hε.le, hSnn]
+
+/-! ### Qualitative uniformly almost-periodic functions -/
+
+/-- Finitary `IsUAP.mul`: a finite product of almost-periodic functions is almost periodic. -/
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.prod {ι : Type*} {s : Finset ι} {g : ι → G → R}
+    (h : ∀ i ∈ s, IsUAP (g i)) : IsUAP (∏ i ∈ s, g i) := by
+  classical
+  induction s using Finset.induction with
+  | empty => simpa using IsUAPWith.isUAP (IsUAPWith.const (z := (1 : R)))
+  | insert j s hj ih =>
+    rw [Finset.prod_insert hj]
+    exact IsUAP.mul (h j (Finset.mem_insert_self _ _))
+      (ih fun i hi ↦ h i (Finset.mem_insert_of_mem hi))
+
+variable [StarRing R] [NormedStarGroup R] {f : G → R}
 
 open scoped ComplexConjugate in
-protected lemma IsUAP.conj (hf : IsUAP f) : IsUAP fun x ↦ conj (f x) := hf.star
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.conj (hf : IsUAP f) : IsUAP (conj f) := hf.star
 
 end NormedCommRing
+
+/-! ## Normed field codomain -/
+
+section NormedField
+variable [NormedField R] {f g : G → R} {ε : ℝ}
+
+/-! ### Uniform almost-periods -/
+
+/-- Inversion is uniformly continuous on the set of elements of norm at least `c > 0`, with modulus
+`ε ↦ c ^ 2 * ε`. -/
+lemma isUniformContinuousOnWith_inv {c : ℝ} (hc : 0 < c) :
+    IsUniformContinuousOnWith (fun ε ↦ c ^ 2 * ε) (Inv.inv : R → R) {y | c ≤ ‖y‖} := by
+  rintro ε hε a ha b hb hab
+  rw [Set.mem_ofPred_eq] at ha hb
+  have ha0 : a ≠ 0 := norm_pos_iff.1 (hc.trans_le ha)
+  have hb0 : b ≠ 0 := norm_pos_iff.1 (hc.trans_le hb)
+  rw [dist_eq_norm, inv_sub_inv ha0 hb0, norm_div, norm_mul, div_le_iff₀ (by positivity),
+    show ‖b - a‖ = dist a b from by rw [dist_eq_norm, norm_sub_rev]]
+  have hc2 : c ^ 2 ≤ ‖a‖ * ‖b‖ := by rw [sq]; gcongr
+  nlinarith [hab, mul_le_mul_of_nonneg_right hc2 hε.le]
+
+/-! ### Quantitative uniformly almost-periodic functions -/
+
+/-- The inverse of a `K`-almost-periodic function bounded below by `c > 0` is
+`ε ↦ K (c ^ 2 * ε)`-almost-periodic. -/
+protected lemma IsUAPWith.inv_comp {c : ℝ} (hc : 0 < c) (hfc : ∀ x, c ≤ ‖f x‖)
+    (hf : IsUAPWith K f) : IsUAPWith (fun ε ↦ K (c ^ 2 * ε)) (fun x ↦ (f x)⁻¹) := by
+  simpa [Function.comp_def] using hf.isUniformContinuousOnWith_comp
+    (fun ε hε ↦ by positivity) (fun x ↦ hfc x) (isUniformContinuousOnWith_inv hc)
+
+/-- The quotient of a `K`-almost-periodic function bounded above by `Bf` and an `L`-almost-periodic
+function bounded below by `c > 0` is uniformly almost-periodic. -/
+protected lemma IsUAPWith.div {Bf c : ℝ} (hfb : ∀ x, ‖f x‖ ≤ Bf) (hc : 0 < c)
+    (hgc : ∀ x, c ≤ ‖g x‖) (hf : IsUAPWith K f) (hg : IsUAPWith L g) :
+    IsUAPWith (fun ε ↦ K (ε / (Bf + c⁻¹ + 1) / 2) * L (c ^ 2 * (ε / (Bf + c⁻¹ + 1) / 2)))
+      (f / g) := by
+  have hgb : ∀ x, ‖(g x)⁻¹‖ ≤ c⁻¹ := fun x ↦ by rw [norm_inv]; exact inv_anti₀ hc (hgc x)
+  rw [div_eq_mul_inv]
+  exact hf.mul hfb hgb (hg.inv_comp hc hgc)
+
+/-- An integer power of a `K`-almost-periodic function bounded above by `B` and below by `c > 0` is
+quantitatively uniformly almost-periodic, with the maximum of the moduli of the two cases. -/
+protected lemma IsUAPWith.zpow (n : ℤ) {B c : ℝ} (hc : 0 < c) (hfc : ∀ x, c ≤ ‖f x‖)
+    (hfb : ∀ x, ‖f x‖ ≤ B) (hf : IsUAPWith K f) :
+    IsUAPWith (fun ε ↦ K (ε / (n.natAbs * B ^ (n.natAbs - 1) + 1)) ⊔
+      K ((c ^ n.natAbs) ^ 2 * ε / (n.natAbs * B ^ (n.natAbs - 1) + 1))) (f ^ n) := by
+  have hbnd : ∀ m : ℕ, ∀ x, c ^ m ≤ ‖(f ^ m) x‖ := fun m x ↦ by
+    rw [Pi.pow_apply, norm_pow]; gcongr; exact hfc x
+  obtain ⟨m, rfl | rfl⟩ := n.eq_nat_or_neg
+  · rw [zpow_natCast]
+    simp only [Int.natAbs_natCast]
+    exact (hf.pow m hfb).mono fun ε _ ↦ le_max_left ..
+  · rw [zpow_neg, zpow_natCast]
+    simp only [Int.natAbs_neg, Int.natAbs_natCast]
+    exact ((hf.pow m hfb).inv_comp (c := c ^ m) (by positivity) (hbnd m)).mono
+      fun ε _ ↦ le_max_right ..
+
+/-! ### Qualitative uniformly almost-periodic functions -/
+
+/-- The inverse of an almost-periodic function bounded away from `0` is almost-periodic. -/
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.inv {c : ℝ} (hc : 0 < c) (hfc : ∀ x, c ≤ ‖f x‖) (hf : IsUAP f) :
+    IsUAP f⁻¹ := by
+  obtain ⟨K, hf⟩ := hf.exists_isUAPWith; exact (hf.inv_comp hc hfc).isUAP
+
+/-- The quotient of an almost-periodic function by an almost-periodic function bounded away from `0`
+is almost-periodic. -/
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.div {c : ℝ} (hc : 0 < c) (hgc : ∀ x, c ≤ ‖g x‖) (hf : IsUAP f)
+    (hg : IsUAP g) : IsUAP (f / g) := by
+  rw [div_eq_mul_inv]; exact hf.mul (hg.inv hc hgc)
+
+/-- An integer power of an almost-periodic function bounded away from `0` is almost-periodic. -/
+@[to_fun (attr := fun_prop)]
+protected lemma IsUAP.zpow {c : ℝ} (hc : 0 < c) (hfc : ∀ x, c ≤ ‖f x‖) (hf : IsUAP f) :
+    ∀ n : ℤ, IsUAP (f ^ n)
+  | (n : ℕ) => by rw [zpow_natCast]; exact hf.pow n
+  | .negSucc n => by rw [zpow_negSucc, ← inv_pow]; exact (hf.inv hc hfc).pow _
+
+end NormedField
+
+/-! ## Real-valued functions -/
+
+section Real
+variable {f : G → ℝ}
+
+/-- A real power `r` of a `K`-almost-periodic function with values in `[c, B]` (`0 < c`) is
+`ε ↦ K (ε / (|r| * (c ^ (r - 1) ⊔ B ^ (r - 1)) + 1))`-almost-periodic. -/
+@[to_fun]
+protected lemma IsUAPWith.rpow (r : ℝ) {c B : ℝ} (hc : 0 < c) (hfc : ∀ x, c ≤ f x)
+    (hfb : ∀ x, f x ≤ B) (hf : IsUAPWith K f) :
+    IsUAPWith (fun ε ↦ K (ε / (|r| * (c ^ (r - 1) ⊔ B ^ (r - 1)) + 1))) (f ^ r) := by
+  have hcp : (0 : ℝ) < c ^ (r - 1) ⊔ B ^ (r - 1) := (Real.rpow_pos_of_pos hc _).trans_le le_sup_left
+  have hC0 : 0 ≤ |r| * (c ^ (r - 1) ⊔ B ^ (r - 1)) := mul_nonneg (abs_nonneg _) hcp.le
+  have hpos : (0 : ℝ≥0) < (|r| * (c ^ (r - 1) ⊔ B ^ (r - 1))).toNNReal + 1 := by positivity
+  have hlip : LipschitzOnWith ((|r| * (c ^ (r - 1) ⊔ B ^ (r - 1))).toNNReal + 1)
+      (· ^ r : ℝ → ℝ) (Set.Icc c B) :=
+    lipschitzOnWith_iff_dist_le_mul.2 fun a ha b hb ↦
+      (lipschitzOnWith_iff_dist_le_mul.1 (lipschitzOnWith_rpow r hc) a ha b hb).trans
+        (mul_le_mul_of_nonneg_right (by push_cast; linarith) dist_nonneg)
+  simpa [Function.comp_def, NNReal.coe_add, NNReal.coe_one, Real.coe_toNNReal _ hC0, Pi.pow_def]
+    using hf.lipschitzOnWith_comp hpos (fun x ↦ Set.mem_Icc.2 ⟨hfc x, hfb x⟩) hlip
+
+end Real
+
+/-! ## Complex-valued functions -/
+
+section Complex
+variable {f : G → ℂ}
+
+open Complex in
+/-- A complex power `w` of a `K`-almost-periodic function whose values lie in a convex subset `S` of
+the slit plane with norms in `[c, B]` (`0 < c`) is
+`ε ↦ K (ε / (‖w‖ * (c ^ (w.re - 1) ⊔ B ^ (w.re - 1)) * exp (π * |w.im|) + 1))`-almost-periodic. -/
+@[to_fun]
+protected lemma IsUAPWith.cpow (w : ℂ) {c B : ℝ} {S : Set ℂ} (hc : 0 < c) (hS : Convex ℝ S)
+    (hSslit : S ⊆ slitPlane) (hSc : ∀ z ∈ S, c ≤ ‖z‖) (hSB : ∀ z ∈ S, ‖z‖ ≤ B)
+    (hfS : ∀ x, f x ∈ S) (hf : IsUAPWith K f) :
+    IsUAPWith
+      (fun ε ↦ K (ε / (‖w‖ * (c ^ (w.re - 1) ⊔ B ^ (w.re - 1)) * Real.exp (Real.pi * |w.im|) + 1)))
+      (f ^ w) := by
+  have hsup : (0 : ℝ) < c ^ (w.re - 1) ⊔ B ^ (w.re - 1) :=
+    (Real.rpow_pos_of_pos hc _).trans_le le_sup_left
+  have hC0 : 0 ≤ ‖w‖ * (c ^ (w.re - 1) ⊔ B ^ (w.re - 1)) * Real.exp (Real.pi * |w.im|) := by
+    positivity
+  have hpos : (0 : ℝ≥0) <
+      (‖w‖ * (c ^ (w.re - 1) ⊔ B ^ (w.re - 1)) * Real.exp (Real.pi * |w.im|)).toNNReal + 1 := by
+    positivity
+  have hlip : LipschitzOnWith
+      ((‖w‖ * (c ^ (w.re - 1) ⊔ B ^ (w.re - 1)) * Real.exp (Real.pi * |w.im|)).toNNReal + 1)
+      (· ^ w : ℂ → ℂ) S :=
+    lipschitzOnWith_iff_dist_le_mul.2 fun a ha b hb ↦
+      (lipschitzOnWith_iff_dist_le_mul.1
+        (lipschitzOnWith_cpow w hc hS hSslit hSc hSB) a ha b hb).trans
+        (mul_le_mul_of_nonneg_right (by push_cast; linarith) dist_nonneg)
+  simpa [Function.comp_def, NNReal.coe_add, NNReal.coe_one, Real.coe_toNNReal _ hC0, Pi.pow_def]
+    using hf.lipschitzOnWith_comp hpos hfS hlip
+
+end Complex
