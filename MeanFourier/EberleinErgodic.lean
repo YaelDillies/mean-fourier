@@ -24,16 +24,16 @@ variable (f) in
 and the closure in the L^∞ norm of the convex hull of its translates contains a unique constant
 function. -/
 @[mk_iff, fun_prop]
-structure IsAlmostConvergent : Prop where
+structure IsEberleinErgodic : Prop where
   isBddFun : IsBddFun f
   existsUnique_const_mem_closure_convexHull :
     ∃! z, Function.const G z ∈ closure (convexHull ℝ (Set.range fun x ↦ τ_[x] f))
 
-attribute [fun_prop] IsAlmostConvergent.isBddFun
+attribute [fun_prop] IsEberleinErgodic.isBddFun
 
 @[to_fun (attr := simp, fun_prop)]
-protected lemma IsAlmostConvergent.const : IsAlmostConvergent (Function.const G z) := by
-  simp [isAlmostConvergent_iff]
+protected lemma IsEberleinErgodic.const : IsEberleinErgodic (Function.const G z) := by
+  simp [isEberleinErgodic_iff]
 
 @[simp, fun_prop]
-protected lemma IsAlmostConvergent.zero : IsAlmostConvergent (0 : G → E) := .const
+protected lemma IsEberleinErgodic.zero : IsEberleinErgodic (0 : G → E) := .const
