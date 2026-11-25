@@ -1,11 +1,11 @@
 module  -- shake: keep-all --deprecated_module: ignore
 
-public import MeanFourier.AlmostConvergent
 public import MeanFourier.AlmostPeriod.L2
 public import MeanFourier.AlmostPeriod.Uniform
 public import MeanFourier.BohrSet.Defs
 public import MeanFourier.BohrSet.Doubling
 public import MeanFourier.BohrSet.Regular
+public import MeanFourier.EberleinErgodic
 public import MeanFourier.InvtMean.Defs
 public import MeanFourier.InvtMean.Foelner
 public import MeanFourier.InvtMean.Riemann

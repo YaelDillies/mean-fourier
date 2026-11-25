@@ -8,7 +8,7 @@ module
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import Mathlib.Combinatorics.Additive.CovBySMul
 public import Mathlib.Topology.MetricSpace.CoveringNumbers
-public import MeanFourier.AlmostConvergent
+public import MeanFourier.EberleinErgodic
 public import MeanFourier.Mathlib.Algebra.Star.Pi
 public import MeanFourier.Mathlib.Data.Finset.Lattice.Fold
 public import MeanFourier.Mathlib.Topology.MetricSpace.Pseudo.Defs
@@ -621,8 +621,8 @@ protected lemma IsUAP.smul [NormedSpace 𝕜 E] (hf : IsUAP f) : IsUAP (c • f)
     exact (hf.smul hc).isUAP
 
 @[fun_prop]
-protected lemma IsUAP.isAlmostConvergent [NormedSpace ℝ E] (hf : IsUAP f) :
-    IsAlmostConvergent f := by
+protected lemma IsUAP.isEberleinErgodic [NormedSpace ℝ E] (hf : IsUAP f) :
+    IsEberleinErgodic f := by
   sorry
 
 /-! ### Postcomposition with a normed group operation -/

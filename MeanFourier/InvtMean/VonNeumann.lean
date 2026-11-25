@@ -34,24 +34,24 @@ noncomputable def vn : InvtMean G 𝕜 E where
   toFun f :=
     open scoped Classical in
     if hf : IsUAP f then
-      hf.isAlmostConvergent.existsUnique_const_mem_closure_convexHull.choose
+      hf.isEberleinErgodic.existsUnique_const_mem_closure_convexHull.choose
     else
       0
   map_zero := by simp; grind
   map_add := by
     rintro f hf g hg
     rw [dite_eq_left hf, dite_eq_left hg, dite_eq_left (hf.add hg),
-      (hf.add hg).isAlmostConvergent.existsUnique_const_mem_closure_convexHull.choose_eq_iff]
+      (hf.add hg).isEberleinErgodic.existsUnique_const_mem_closure_convexHull.choose_eq_iff]
     sorry
   map_smul := by
     rintro f hf z
     rw [dite_eq_left hf, dite_eq_left hf.smul,
-      hf.smul.isAlmostConvergent.existsUnique_const_mem_closure_convexHull.choose_eq_iff]
+      hf.smul.isEberleinErgodic.existsUnique_const_mem_closure_convexHull.choose_eq_iff]
     sorry
   map_translate := by
     rintro f hf x
     rw [dite_eq_left hf, dite_eq_left hf.translate,
-      hf.translate.isAlmostConvergent.existsUnique_const_mem_closure_convexHull.choose_eq_iff]
+      hf.translate.isEberleinErgodic.existsUnique_const_mem_closure_convexHull.choose_eq_iff]
     sorry
   map_nonneg := by
     rintro f hf₀ hf
